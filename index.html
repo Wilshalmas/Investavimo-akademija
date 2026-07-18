@@ -72,6 +72,17 @@
   .optional-box{margin-top:16px;border:1px dashed var(--border);border-radius:6px;padding:12px 14px;}
   .optional-box summary{cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--gold);}
   .optional-box p{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6;}
+  .visual-example{margin:16px 0;}
+  .visual-example .ve-intro{font-size:12.5px;color:var(--muted);margin-bottom:10px;line-height:1.6;}
+  .quote-mock{background:var(--bg-card);border:1px solid var(--gold);border-radius:8px;padding:16px 18px;font-family:'JetBrains Mono',monospace;}
+  .quote-mock-head{font-size:13px;color:var(--muted);margin-bottom:4px;}
+  .quote-mock-price{font-size:24px;font-weight:700;color:var(--ink);margin-bottom:12px;}
+  .quote-mock-price .up{color:var(--gain);font-size:14px;margin-left:8px;}
+  .quote-mock-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  .quote-mock-grid div{display:flex;flex-direction:column;gap:3px;}
+  .quote-mock-grid span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  .quote-mock-grid b{font-size:13px;color:var(--ink);}
+  @media(max-width:480px){.quote-mock-grid{grid-template-columns:1fr 1fr;}}
   .timer-wrap{margin-top:18px;}
   .timer-track{width:100%;height:6px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:8px;}
   .timer-fill{height:100%;background:var(--gold);width:0%;transition:width 1s linear;}
@@ -217,8 +228,17 @@ function shuffleOptions(q){
   const idxs = q.opts.map((_,i)=>i);
   const shuffled = shuffleArray(idxs);
   const newOpts = shuffled.map(i=>q.opts[i]);
+  if(q.multi){
+    const newCorrect = q.correct.map(ci => shuffled.indexOf(ci)).sort((a,b)=>a-b);
+    return Object.assign({}, q, {opts:newOpts, correct:newCorrect});
+  }
   const newCorrect = shuffled.indexOf(q.correct);
   return Object.assign({}, q, {opts:newOpts, correct:newCorrect});
+}
+function arraysEqual(a,b){
+  if(a.length !== b.length) return false;
+  const sa = [...a].sort((x,y)=>x-y), sb = [...b].sort((x,y)=>x-y);
+  return sa.every((v,i) => v === sb[i]);
 }
 function pickN(arr, n){
   const copy = [...arr]; const out = [];
@@ -251,7 +271,7 @@ const M1_TOPICS = [
   {diff:'lengvas', q:'Kas gauna akcijos savininkas, jei įmonė paskelbia dividendus?', opts:['Dalį įmonės pelno','Nemokamą produktą','Papildomą atlyginimą','Mokesčių grąžinimą'], correct:0, ex:'Dividendai yra pelno dalis, mokama akcininkams.'},
   {diff:'vidutinis', q:'Kodėl įmonės dažnai renkasi leisti akcijas, o ne imti paskolą?', opts:['Nes akcijos visada pigesnės nei paskolos administravimas','Nes tai leidžia pritraukti kapitalą be paskolos palūkanų','Nes tai privaloma pagal įstatymą','Nes akcijos negrąžinamos investuotojams niekada'], correct:1, ex:'Akcijų pardavimas leidžia gauti kapitalą nesiimant skolinių įsipareigojimų su palūkanomis.'},
   {diff:'vidutinis', q:'Kuri iš šių yra akcininko teisė?', opts:['Garantuotas fiksuotas mokėjimas kas mėnesį','Teisė valdyti įmonės kasdienę veiklą vienam asmeniui','Balsavimo teisė svarbiuose įmonės sprendimuose','Teisė reikalauti pinigų grąžinimo bet kada'], correct:2, ex:'Akcininkai dažniausiai turi balsavimo teisę, proporcingą jų turimų akcijų kiekiui.'},
-  {diff:'sunkus', q:'Jei įmonė bankrutuoja ir likviduojama, kokia yra tipinė akcininkų padėtis, palyginti su obligacijų turėtojais?', opts:['Akcininkai atgauna pinigus pirmi','Akcininkai ir kreditoriai turi lygias teises','Akcininkams atlyginama paskutiniams, po visų kreditorių','Akcininkai visada praranda mažiau nei kreditoriai'], correct:2, ex:'Likvidavimo atveju kreditoriai (įskaitant obligacijų turėtojus) turi pirmumo teisę prieš akcininkus.'}
+  {diff:'sunkus', multi:true, q:'Kurie teiginiai apie akcininkų padėtį įmonės bankroto (likvidavimo) atveju yra teisingi?', opts:['Akcininkams atlyginama paskutiniams, po visų kreditorių','Akcininkai turi pirmumo teisę prieš kreditorius','Akcininkai gali prarasti visą investuotą sumą','Akcininkams visada garantuojamas bent dalinis grąžinimas'], correct:[0,2], ex:'Likvidavimo atveju kreditoriai turi pirmumo teisę, o akcininkai gali netekti visos investicijos — jokios garantijos nėra.'}
 ]},
 {id:'t2', title:'Kas yra obligacija?', theory:[
   {h:'Paskola, ne nuosavybė', p:'Pirkdami obligaciją, jūs iš esmės paskolinate pinigus įmonei ar valstybei. Jūs tampate kreditoriumi, o ne savininku, ir turite teisę atgauti pinigus su sutartomis palūkanomis.'},
@@ -262,7 +282,7 @@ const M1_TOPICS = [
   {diff:'lengvas', q:'Kas yra obligacijos „kuponas“?', opts:['Nuolaidos kodas obligacijai pirkti','Nustatyta palūkanų norma, mokama investuotojui','Obligacijos pardavimo mokestis','Akcijos kainos pokytis'], correct:1, ex:'Kuponas — tai palūkanų norma, kurią emitentas moka obligacijos savininkui.'},
   {diff:'vidutinis', q:'Palyginus su akcijomis, obligacijos paprastai yra...', opts:['Rizikingesnės, bet su didesne potencialia grąža','Stabilesnės, su mažesne potencialia grąža','Visiškai be jokios rizikos','Neįmanoma palyginti'], correct:1, ex:'Obligacijos dažniausiai laikomos stabilesnėmis, tačiau ir jų grąžos potencialas mažesnis.'},
   {diff:'vidutinis', q:'Kas yra obligacijos „išpirkimo data“?', opts:['Diena, kada buvo išleista obligacija','Diena, kada emitentas grąžina pagrindinę sumą investuotojui','Diena, kada mokamas paskutinis dividendas','Diena, kada obligaciją galima parduoti biržoje pirmą kartą'], correct:1, ex:'Išpirkimo (grąžinimo) data — kada pagrindinė paskolinta suma grąžinama investuotojui.'},
-  {diff:'sunkus', q:'Kodėl valstybės obligacijos paprastai laikomos vienu saugiausių investavimo instrumentų?', opts:['Nes jų kaina niekada nesikeičia biržoje','Nes valstybė turi mokesčių surinkimo galią skoloms grąžinti, tad įsipareigojimų nevykdymo rizika žema','Nes jos moka didžiausias palūkanas rinkoje','Nes jas draudžiama parduoti prieš terminą'], correct:1, ex:'Valstybės gebėjimas rinkti mokesčius sumažina riziką, kad skola nebus grąžinta.'}
+  {diff:'sunkus', multi:true, q:'Kurie teiginiai apie valstybės obligacijas yra teisingi?', opts:['Jos moka fiksuotas palūkanas (kuponą)','Valstybės mokesčių surinkimo galia sumažina įsipareigojimų nevykdymo riziką','Jos visiškai be jokios rizikos bet kokioje situacijoje','Jos visada duoda didesnę grąžą nei akcijos'], correct:[0,1], ex:'Valstybės obligacijos moka fiksuotas palūkanas, o valstybės mokesčių surinkimo galia mažina riziką — tačiau „visiškai be rizikos“ ar „visada didesnė grąža“ nėra teisinga.'}
 ]},
 {id:'t3', title:'Kaip veikia birža?', theory:[
   {h:'Prekybos vieta', p:'Birža yra sistema — šiandien dažniausiai elektroninė — kurioje susitinka pirkėjų ir pardavėjų užsakymai ir sudaromi sandoriai.'},
@@ -290,7 +310,7 @@ const M1_TOPICS = [
   {h:'Kodėl tai patogu', p:'Nupirkę vieną ETF vienetą, iškart gaunate diversifikaciją tarp daugelio įmonių — nereikia pirkti kiekvienos atskirai.'},
   {h:'Trumpas palyginimas', p:'Akcija = nuosavybė vienoje įmonėje. Obligacija = paskola vienam skolininkui. ETF = krepšelis daugelio aktyvų vienu pirkiniu.'}
 ], quiz:[
-  {diff:'lengvas', q:'Kas yra ETF?', opts:['Vienos įmonės akcija','Krepšelis kelių aktyvų, kuriuo prekiaujama kaip akcija','Valstybės išleista obligacija','Banko indėlio sąskaita'], correct:1, ex:'ETF apjungia kelis aktyvus į vieną, biržoje prekiaujamą vertybinį popierių.'},
+  {diff:'lengvas', q:'Kas yra ETF?', opts:['Vienos konkrečios įmonės išleista akcija','Krepšelis kelių aktyvų, kuriuo prekiaujama kaip akcija','Valstybės išleistas skolos vertybinis popierius','Banko siūloma indėlio sąskaitos rūšis'], correct:1, ex:'ETF apjungia kelis aktyvus į vieną, biržoje prekiaujamą vertybinį popierių.'},
   {diff:'lengvas', q:'Kokį iš šių trijų geriausiai apibūdina žodžiai „paskola vienam skolininkui“?', opts:['Akcija','Obligacija','ETF','Nė vienas'], correct:1, ex:'Obligacija yra paskola konkrečiam skolininkui (įmonei ar valstybei).'},
   {diff:'vidutinis', q:'Pagrindinis ETF privalumas, palyginus su viena akcija, yra...', opts:['Garantuotas pelnas','Įdėtinė diversifikacija','Nulinė rizika','Fiksuotos palūkanos'], correct:1, ex:'Vienu pirkimu gaunate dalį daugelio skirtingų įmonių — tai sumažina koncentracijos riziką.'},
   {diff:'vidutinis', q:'Kuris teiginys teisingas?', opts:['ETF gali sekti tik vieną konkrečią akciją','Obligacija reiškia nuosavybės dalį įmonėje','Akcija reiškia paskolą įmonei','ETF gali apimti dešimtis ar šimtus skirtingų vertybinių popierių'], correct:3, ex:'ETF būdingas bruožas — jis apjungia daug skirtingų aktyvų viename fonde.'},
@@ -316,7 +336,7 @@ const M1_TOPICS = [
   {diff:'lengvas', q:'Kas priskiriama instituciniams investuotojams?', opts:['Pavieniai smulkūs investuotojai','Pensijų fondai ir investiciniai fondai','Vidutinės mokyklos moksleiviai','Vienos šeimos taupomosios sąskaitos'], correct:1, ex:'Instituciniai investuotojai — tai stambios organizacijos, valdančios didelį kapitalą.'},
   {diff:'vidutinis', q:'Kokia yra rinkos formuotojo (market maker) funkcija?', opts:['Nustatyti fiksuotą valstybės kainą','Nuolat siūlyti pirkimo ir pardavimo kainas, palaikant likvidumą','Reguliuoti mokesčius','Valdyti visas biržas pasaulyje'], correct:1, ex:'Rinkos formuotojai palaiko nuolatinį pirkimo/pardavimo pasiūlymų srautą, taip užtikrindami likvidumą.'},
   {diff:'vidutinis', q:'Kuo instituciniai investuotojai iš esmės skiriasi nuo mažmeninių?', opts:['Instituciniai investuoja tik į obligacijas','Instituciniai valdo žymiai didesnius kapitalus ir dažnai turi daugiau resursų analizei','Mažmeniniai investuotojai visada uždirba daugiau','Instituciniai investuotojai neturi teisės pirkti akcijų'], correct:1, ex:'Instituciniai investuotojai valdo didelius kapitalus ir dažnai turi daugiau analitinių resursų.'},
-  {diff:'sunkus', q:'Kodėl individualiam (mažmeniniam) investuotojui gali būti sunku konkuruoti su instituciniais investuotojais itin trumpalaikėje prekyboje?', opts:['Nes mažmeniniams investuotojams teisiškai draudžiama prekiauti dažnai','Nes instituciniai turi greitesnę informaciją, geresnę technologiją ir didesnius resursus analizei','Nes mažmeniniai investuotojai visada moka didesnius mokesčius už akcijas','Nes instituciniai investuotojai visada žino būsimas kainas'], correct:1, ex:'Instituciniai investuotojai dažnai turi informacinį, technologinį ir resursų pranašumą, ypač trumpalaikėje prekyboje.'}
+  {diff:'sunkus', multi:true, q:'Kurie veiksniai paaiškina, kodėl instituciniams investuotojams dažnai lengviau nei individualiems itin trumpalaikėje prekyboje?', opts:['Greitesnė prieiga prie informacijos','Geresnė technologinė infrastruktūra analizei','Mažmeniniams investuotojams teisiškai draudžiama prekiauti dažnai','Instituciniai investuotojai visada tiksliai žino būsimas kainas'], correct:[0,1], ex:'Instituciniai investuotojai dažnai turi informacinį ir technologinį pranašumą — bet jokie apribojimai mažmeniniams ar „ateities žinojimas“ čia netaikomi.'}
 ]},
 {id:'t8', title:'Rinkos terminai', theory:[
   {h:'Bull ir bear rinka', p:'„Bull market“ (buliaus rinka) — laikotarpis, kai kainos ilgą laiką kyla ir vyrauja optimizmas. „Bear market“ (lokio rinka) — priešingai, kainos ilgai krenta, vyrauja pesimizmas.'},
@@ -333,10 +353,13 @@ const M1_TOPICS = [
   {h:'Kainos ir pokytis', p:'Kotiruotėje paprastai matote dabartinę kainą ir pokytį (procentais ar suma) nuo praėjusios prekybos dienos uždarymo.'},
   {h:'Apimtis (volume)', p:'Apimtis rodo, kiek akcijų buvo nupirkta ar parduota per tam tikrą laikotarpį — didesnė apimtis dažnai reiškia stipresnį rinkos susidomėjimą.'},
   {h:'52 savaičių intervalas', p:'52 savaičių aukščiausia ir žemiausia riba parodo, kokiame kainų diapazone akcija prekiavo per pastaruosius metus — tai padeda įvertinti dabartinę kainą kontekste.'}
-], optional:{h:'Papildomai: kaip skaityti pilną kotiruotės lentelę', p:'Profesionalios kotiruotės dažnai papildomai rodo P/E rodiklį (kainos ir pelno santykį), rinkos kapitalizaciją bei dividendų pajamingumą vienoje vietoje — tai leidžia greitai palyginti kelias įmones nesigilinant į pilnas ataskaitas.'},
+], visual:{
+  intro:'Taip realiai atrodo kotiruotė (pavyzdys su fiktyvia įmone). Panašias kotiruotes rasite bet kurio brokerio programėlėje, banko investavimo platformoje, ar nemokamai — Google Finance, Yahoo Finance svetainėse. Lietuviškai kotiruotė dar vadinama tiesiog „quote“, o kartais pavadinta „instrumento kortele“ ar „ticker“ lentele.',
+  html:'<div class="quote-mock"><div class="quote-mock-head"><b>NORD</b> · NordTech AB</div><div class="quote-mock-price">€20.00 <span class="up">▲ +0.8%</span></div><div class="quote-mock-grid"><div><span>Bid</span><b>€19.80</b></div><div><span>Ask</span><b>€20.00</b></div><div><span>Dienos intervalas</span><b>€19.50–€20.30</b></div><div><span>52 sav. intervalas</span><b>€15.00–€28.00</b></div><div><span>Apimtis</span><b>842 300</b></div><div><span>Rinkos kapitalizacija</span><b>€50 mln.</b></div></div></div>'
+}, optional:{h:'Papildomai: kaip skaityti pilną kotiruotės lentelę', p:'Profesionalios kotiruotės dažnai papildomai rodo P/E rodiklį (kainos ir pelno santykį), rinkos kapitalizaciją bei dividendų pajamingumą vienoje vietoje — tai leidžia greitai palyginti kelias įmones nesigilinant į pilnas ataskaitas.'},
 quiz:[
   {diff:'lengvas', q:'Ką rodo akcijos „apimtis“ (volume)?', opts:['Įmonės metinį pelną','Kiek akcijų buvo nupirkta/parduota per laikotarpį','Akcijos kainą prieš metus','Akcininkų skaičių'], correct:1, ex:'Apimtis parodo prekybos aktyvumą — kiek akcijų pakeitė savininką.'},
-  {diff:'lengvas', q:'Ką parodo 52 savaičių aukščiausia ir žemiausia riba?', opts:['Įmonės amžių','Kainų diapazoną per pastaruosius metus','Dividendų dydį','Akcininkų sąrašą'], correct:1, ex:'Tai padeda suprasti, ar dabartinė kaina yra arti metinio maksimumo ar minimumo.'},
+  {diff:'lengvas', q:'Ką parodo 52 savaičių aukščiausia ir žemiausia riba?', opts:['Kiek metų įmonė vykdo veiklą rinkoje','Kainų diapazoną per pastaruosius metus','Kiek dividendų išmokėta per pastaruosius metus','Visų akcininkų vardinį sąrašą'], correct:1, ex:'Tai padeda suprasti, ar dabartinė kaina yra arti metinio maksimumo ar minimumo.'},
   {diff:'vidutinis', q:'Kotiruotėje matomas „pokytis“ paprastai lyginamas su...', opts:['Praėjusio mėnesio vidurkiu','Praėjusios prekybos dienos uždarymo kaina','Įmonės įkūrimo kaina','Konkurento kaina'], correct:1, ex:'Dienos pokytis dažniausiai skaičiuojamas nuo ankstesnės uždarymo kainos.'},
   {diff:'vidutinis', q:'Kodėl neįprastai didelė prekybos apimtis be jokios žinomos naujienos gali būti verta dėmesio?', opts:['Ji visada reiškia, kad kaina tuoj dvigubai kris','Ji gali signalizuoti, kad rinka reaguoja į dar viešai nepaskelbtą informaciją','Ji niekada nieko nereiškia','Ji visada rodo techninę biržos klaidą'], correct:1, ex:'Neįprasta apimtis be aiškios priežasties kartais signalizuoja, kad rinkos dalyviai reaguoja į dar neviešą informaciją.'},
   {diff:'sunkus', q:'Akcijos 52 sav. intervalas €30–€90, dabartinė kaina €85, apimtis šiandien 5x didesnė nei įprastai. Ką tai kartu gali reikšti?', opts:['Akcija tikrai toliau kils be jokios abejonės','Akcija prekiauja arti metinio maksimumo su neįprastai dideliu susidomėjimu — verta pasidomėti priežastimi','Akcija tikrai kris, nes yra brangi','Tai reiškia, kad akcija bus pašalinta iš biržos'], correct:1, ex:'Kaina arti metinio maksimumo kartu su didele apimtimi rodo stiprų, neįprastą susidomėjimą — verta išsiaiškinti kodėl, bet tai savaime negarantuoja nei tolimesnio kilimo, nei kritimo.'}
@@ -350,7 +373,7 @@ quiz:[
   {diff:'lengvas', q:'Kokiam tikslui dažniausiai naudojamos mokesčių atžvilgiu privilegijuotos sąskaitos?', opts:['Kasdienėms pirkinių išlaidoms','Ilgalaikiam pensijos taupymui','Valiutos keitimui','Paskolų grąžinimui'], correct:1, ex:'Šios sąskaitos dažniausiai skirtos skatinti ilgalaikį taupymą pensijai.'},
   {diff:'vidutinis', q:'Kodėl egzistuoja mokesčių atžvilgiu privilegijuotos sąskaitos?', opts:['Kad apsunkintų investavimą','Kad paskatintų ilgalaikį taupymą/investavimą','Nes jos privalomos visiems','Nes jos pakeičia maklerio sąskaitą visose situacijose'], correct:1, ex:'Tokios sąskaitos suteikia mokesčių lengvatas, skatinančias ilgalaikį kaupimą.'},
   {diff:'vidutinis', q:'Trumpalaikiams finansiniams tikslams paprastai geriau tinka...', opts:['Specializuota pensijų sąskaita su apribojimais','Paprasta maklerio sąskaita','Jokia sąskaita nereikalinga','Tik grynųjų pinigų laikymas namuose'], correct:1, ex:'Maklerio sąskaita suteikia lankstumą, reikalingą trumpesniems tikslams.'},
-  {diff:'sunkus', q:'Kodėl svarbu žinoti savo sąskaitos tipo taisykles prieš pasirenkant investavimo strategiją?', opts:['Nes visos sąskaitos veikia identiškai, tai neturi reikšmės','Nes skirtingos sąskaitos gali turėti skirtingus mokesčių, išėmimo ar apribojimų reikalavimus, veikiančius grynąją grąžą','Nes brokeriai visada pasirenka sąskaitą už jus','Nes sąskaitos tipas veikia tik akcijų kainą'], correct:1, ex:'Sąskaitos taisyklės (mokesčiai, apribojimai, lengvatos) tiesiogiai veikia jūsų grynąją investicijų grąžą.'}
+  {diff:'sunkus', multi:true, q:'Kurie teiginiai apie investavimo sąskaitų taisykles yra teisingi?', opts:['Skirtingos sąskaitos gali turėti skirtingus mokesčius','Sąskaitos apribojimai gali veikti grynąją investicijų grąžą','Visos sąskaitos visame pasaulyje veikia identiškai','Sąskaitos tipas veikia tik akcijos kainą, nieko daugiau'], correct:[0,1], ex:'Skirtingi mokesčiai ir apribojimai realiai veikia grynąją grąžą — sąskaitos jokiu būdu nėra visos identiškos.'}
 ]}
 ];
 
@@ -405,7 +428,7 @@ const M2_TOPICS = [
   {diff:'lengvas', q:'Kurie du pagrindiniai rizikos tipai aptariami?', opts:['Rinkos ir įmonės specifinė rizika','Valiutos ir laiko rizika','Mokesčių ir infliacijos rizika','Politinė ir teisinė rizika'], correct:0, ex:'Šioje temoje aptariami rinkos ir įmonės specifinė rizika.'},
   {diff:'vidutinis', q:'Kodėl investuotojai apskritai prisiima riziką?', opts:['Nes tai privaloma pagal įstatymą','Nes rizika susijusi su galimybe gauti didesnę grąžą nei visiškai saugūs instrumentai','Nes rizika visada duoda didesnį pelną','Nes rizikingi aktyvai pigesni'], correct:1, ex:'Didesnė galima grąža paprastai reikalauja prisiimti tam tikrą riziką.'},
   {diff:'vidutinis', q:'„Įmonės specifinė rizika“ apibūdina...', opts:['Riziką, veikiančią visą rinką vienu metu','Riziką, kylančią iš konkrečios įmonės problemų','Valstybės nustatytą mokesčių normą','Biržos veikimo valandas'], correct:1, ex:'Įmonės specifinė rizika susijusi tik su ta viena įmone, ne su visa rinka.'},
-  {diff:'sunkus', q:'Ekonomikos recesijos metu krenta beveik visos akcijos, net gerai valdomų įmonių. Kokia tai rizika?', opts:['Vien tik įmonės specifinė rizika','Rinkos (sisteminė) rizika, veikianti beveik visus aktyvus vienu metu','Rizikos apskritai nėra, nes tai laikina','Tik technologijų sektoriaus rizika'], correct:1, ex:'Recesijos poveikis beveik visoms akcijoms vienu metu yra klasikinis rinkos (sisteminės) rizikos pavyzdys.'}
+  {diff:'sunkus', multi:true, q:'Kurie teiginiai apie sisteminę (rinkos) riziką yra teisingi?', opts:['Ji veikia beveik visus aktyvus vienu metu','Ekonomikos recesija yra tipiškas sisteminės rizikos pavyzdys','Diversifikacija ją visiškai panaikina','Ji priklauso tik nuo vienos konkrečios įmonės sprendimų'], correct:[0,1], ex:'Sisteminė rizika veikia beveik visą rinką vienu metu (kaip recesijos atveju) — diversifikacija jos nepanaikina.'}
 ]},
 {id:'t2', title:'Rizikos ir grąžos ryšys', theory:[
   {h:'Pagrindinis principas', p:'Investuojant galioja pagrindinė taisyklė: didesnė galima grąža paprastai reikalauja prisiimti didesnę riziką.'},
@@ -438,7 +461,7 @@ const M2_TOPICS = [
   {diff:'lengvas', q:'Koks populiarus posakis apibūdina diversifikaciją?', opts:['„Laikas — pinigai“','„Nedėkite visų kiaušinių į vieną krepšelį“','„Pirk pigiau, parduok brangiau“','„Rizika lygu nuliui“'], correct:1, ex:'Šis posakis glaustai nusako diversifikacijos esmę.'},
   {diff:'vidutinis', q:'Kokią riziką diversifikacija sumažina efektyviausiai?', opts:['Bendrą rinkos riziką','Įmonės specifinę (nesisteminę) riziką','Valiutos keitimo mokesčius','Infliaciją'], correct:1, ex:'Diversifikacija geriausiai veikia prieš su konkrečia įmone susijusią riziką.'},
   {diff:'vidutinis', q:'Ar diversifikacija panaikina visą investavimo riziką?', opts:['Taip, visiškai','Ne, ji nepanaikina bendros rinkos (sisteminės) rizikos','Taip, bet tik akcijoms','Ne, ji tik padidina riziką'], correct:1, ex:'Net gerai diversifikuotas portfelis vis tiek jaučia bendrus rinkos svyravimus.'},
-  {diff:'sunkus', q:'Investuotojas turi 20 skirtingų akcijų, bet visos jos — JAV technologijų sektoriaus įmonės. Ar toks portfelis tikrai gerai diversifikuotas?', opts:['Taip, nes 20 skirtingų akcijų visada yra pakankama diversifikacija','Ne visiškai — visos priklauso tam pačiam sektoriui ir šaliai, tad sektoriaus krizė paveiktų visas vienu metu','Taip, nes technologijų sektorius yra saugiausias','Diversifikacijos kiekis nesvarbu, jei akcijų skaičius didelis'], correct:1, ex:'Diversifikacija tarp 20 akcijų nepakankama, jei visos priklauso tam pačiam sektoriui — tikra diversifikacija reikalauja įvairovės tarp sektorių, regionų ir aktyvų klasių.'}
+  {diff:'sunkus', multi:true, q:'Investuotojas turi 20 skirtingų akcijų, bet visos jos — JAV technologijų sektoriaus įmonės. Kurie teiginiai apie tokį portfelį teisingi?', opts:['Toks portfelis nėra tikrai diversifikuotas, nes visos akcijos priklauso vienam sektoriui','Sektoriaus krizė gali paveikti visas 20 akcijų vienu metu','20 skirtingų akcijų visada reiškia pakankamą diversifikaciją','Technologijų sektorius yra imunus rinkos svyravimams'], correct:[0,1], ex:'Diversifikacija tarp 20 akcijų nepakankama, jei visos priklauso tam pačiam sektoriui — sektoriaus krizė paveiktų visas vienu metu.'}
 ]},
 {id:'t5', title:'Koreliacija tarp aktyvų', theory:[
   {h:'Kas yra koreliacija', p:'Koreliacija parodo, kaip du aktyvai juda vienas kito atžvilgiu — kartu ta pačia kryptimi, priešingomis kryptimis, ar visiškai nepriklausomai.'},
@@ -540,7 +563,7 @@ const M3_TOPICS = [
   {diff:'lengvas', q:'Į kiek pagrindinių dalių skirstoma pinigų srautų ataskaita?', opts:['Dvi: pajamos ir sąnaudos','Tris: veiklos, investicinę ir finansinę','Keturias: metų ketvirčius','Vieną — bendrą pinigų sumą'], correct:1, ex:'Trys dalys: veiklos, investicinė ir finansinė veikla.'},
   {diff:'vidutinis', q:'Kodėl įmonė gali rodyti pelną, bet turėti mažai realių grynųjų pinigų?', opts:['Nes pelnas visada melagingas','Nes pelnas gali apimti dar neapmokėtas (kreditu parduotas) sąskaitas','Nes mokesčiai panaikina visus pinigus','Nes akcininkai pasiima visus pinigus'], correct:1, ex:'Apskaitinis pelnas gali apimti pajamas, už kurias pinigai dar realiai negauti.'},
   {diff:'vidutinis', q:'Kuris pinigų srautas laikomas svarbiausiu rodikliu, ar pagrindinė veikla generuoja realius pinigus?', opts:['Investicinis pinigų srautas','Finansinis pinigų srautas','Veiklos pinigų srautas','Visi trys vienodai svarbūs'], correct:2, ex:'Veiklos pinigų srautas rodo, ar pagrindinis verslas realiai generuoja pinigus.'},
-  {diff:'sunkus', q:'Įmonė rodo didelį grynąjį pelną pajamų ataskaitoje, bet neigiamą veiklos pinigų srautą kelis ketvirčius iš eilės. Ką tai gali signalizuoti?', opts:['Nieko blogo, tai visiškai normalu ir nesvarbu','Galimą problemą realiai surenkant pinigus iš klientų, nepaisant popierinio pelno','Kad įmonė tikrai netrukus bankrutuos','Kad įmonė moka per daug dividendų'], correct:1, ex:'Nuolat neigiamas veiklos pinigų srautas, nepaisant popierinio pelno, yra įspėjamasis ženklas, vertas gilesnio tyrimo.'}
+  {diff:'sunkus', multi:true, q:'Įmonė rodo didelį grynąjį pelną, bet neigiamą veiklos pinigų srautą kelis ketvirčius iš eilės. Kurie teiginiai apie tai teisingi?', opts:['Tai gali reikšti sunkumus realiai surenkant pinigus iš klientų','Verta atkreipti dėmesį ir tirti giliau, net jei pelnas atrodo gerai','Tai visada reiškia buhalterinį sukčiavimą','Tai visiškai nesvarbu, jei pajamos auga'], correct:[0,1], ex:'Neigiamas veiklos pinigų srautas nepaisant popierinio pelno yra įspėjamasis ženklas, vertas gilesnio tyrimo — bet savaime dar nereiškia sukčiavimo.'}
 ]},
 {id:'t4', title:'P/E rodiklis', theory:[
   {h:'Kas tai', p:'P/E (Price/Earnings, kainos ir pelno santykis) = akcijos kaina padalinta iš pelno, tenkančio vienai akcijai (EPS).'},
@@ -549,7 +572,7 @@ const M3_TOPICS = [
 ], quiz:[
   {diff:'lengvas', q:'Ką reiškia santrumpa P/E?', opts:['Profit/Equity','Price/Earnings (kainos ir pelno santykis)','Payment/Expense','Portfolio/Evaluation'], correct:1, ex:'P/E reiškia Price/Earnings — kainos ir pelno santykį.'},
   {diff:'lengvas', q:'Kaip apskaičiuojamas P/E rodiklis?', opts:['Akcijos kaina padalinta iš pelno vienai akcijai (EPS)','Pelnas padalintas iš akcijos kainos','Akcijos kaina padauginta iš akcijų skaičiaus','Pajamos padalintos iš sąnaudų'], correct:0, ex:'P/E = akcijos kaina ÷ EPS.'},
-  {diff:'vidutinis', q:'Ką rodo aukštas P/E rodiklis?', opts:['Įmonė tikrai bankrutuos','Investuotojai sutinka mokėti daug už kiekvieną uždirbtą eurą pelno — gali reikšti brangią arba sparčiai augančią įmonę','Įmonė nemoka jokių mokesčių','Akcijos kaina tikrai artimiausiu metu kris'], correct:1, ex:'Aukštas P/E rodo, kad rinka vertina įmonę brangiai santykinai su dabartiniu pelnu.'},
+  {diff:'vidutinis', q:'Ką rodo aukštas P/E rodiklis?', opts:['Įmonė tikrai artimiausiu metu bankrutuos','Investuotojai moka daug už kiekvieną uždirbtą pelno eurą','Įmonė visiškai nemoka jokių mokesčių valstybei','Akcijos kaina tikrai per savaitę smarkiai kris'], correct:1, ex:'Aukštas P/E rodo, kad rinka vertina įmonę brangiai santykinai su dabartiniu pelnu — gali reikšti brangią arba sparčiai augančią įmonę.'},
   {diff:'vidutinis', q:'Kodėl P/E geriausiai naudoti lyginant įmones tame pačiame sektoriuje, o ne skirtinguose?', opts:['Nes skirtingi sektoriai turi skirtingus tipinius P/E lygius dėl skirtingo augimo tempo ir rizikos','Nes P/E negalioja technologijų sektoriui','Nes skirtingi sektoriai naudoja skirtingą valiutą','P/E iš tikrųjų tinka lyginti bet kuriuos du sektorius vienodai'], correct:0, ex:'Skirtingi sektoriai (pvz. technologijos vs bankai) istoriškai turi skirtingus „normalius“ P/E lygius.'},
   {diff:'sunkus', q:'Akcijos kaina €60, EPS (pelnas vienai akcijai) €3. Koks šios akcijos P/E rodiklis?', opts:['3','20','180','63'], correct:1, ex:'P/E = 60 ÷ 3 = 20.'}
 ]},
@@ -623,7 +646,7 @@ const M3_STATEMENT_PRACTICE = {
 
 const MODULE_CONTENT = {
   m1: { topics: M1_TOPICS, caseStudies: M1_CASE_STUDIES, practice: {type:'news', data: M1_NEWS_PRACTICE, label:'Praktika: naujienų analizė'} },
-  m2: { topics: M2_TOPICS, caseStudies: M2_CASE_STUDIES, practice: {type:'allocation', assets: M2_ALLOC_ASSETS, label:'Praktika: portfelio paskirstymas'} },
+  m2: { topics: M2_TOPICS, caseStudies: M2_CASE_STUDIES, practice: {type:'allocation', assets: M2_ALLOC_ASSETS, persona:{name:'Rūta', desc:'55 metų, iki pensijos liko 5 metai. Nori išsaugoti sutaupytus pinigus, bet vis tiek siekia nedidelio augimo, kad neatsiliktų nuo infliacijos.', idealMaxVol:0.045}, label:'Praktika: paskirstykite portfelį Rūtai'} },
   m3: { topics: M3_TOPICS, caseStudies: M3_CASE_STUDIES, practice: {type:'statement', data: M3_STATEMENT_PRACTICE, label:'Praktika: ataskaitos skaitymas'} }
 };
 
@@ -935,13 +958,16 @@ function renderTopic(main){
   let stage = tp.theoryRead ? 'quiz' : 'theory';
 
   function drawTheory(){
-    const totalChars = t.theory.reduce((s,sec) => s + sec.p.length, 0);
-    const requiredSec = Math.min(60, Math.max(25, Math.round(totalChars / 14)));
+    const totalChars = t.theory.reduce((s,sec) => s + sec.p.length, 0) + (t.visual ? t.visual.intro.length : 0);
+    const requiredSec = Math.min(90, Math.max(20, Math.round(totalChars / 9)));
     let elapsed = 0;
 
     let html = `<div class="back-link" id="backBtn">← Atgal į modulį</div><div class="content-panel">
       <h2 style="font-size:19px;margin-bottom:16px;">${t.title}</h2>`;
     t.theory.forEach(sec => { html += `<div class="theory-section"><h3>${sec.h}</h3><p>${sec.p}</p></div>`; });
+    if(t.visual){
+      html += `<div class="visual-example"><p class="ve-intro">${t.visual.intro}</p>${t.visual.html}</div>`;
+    }
     if(t.optional){
       html += `<details class="optional-box"><summary>💡 ${t.optional.h} (neprivaloma)</summary><p>${t.optional.p}</p></details>`;
     }
@@ -984,7 +1010,7 @@ function renderTopic(main){
 
     function startAttempt(){
       quizSet = sampleQuestions(t.quiz, meta.mode || 'learn');
-      selections = new Array(quizSet.length).fill(null);
+      selections = quizSet.map(q => q.multi ? [] : null);
       submitted = false;
       draw();
     }
@@ -994,30 +1020,33 @@ function renderTopic(main){
         <h2 style="font-size:19px;margin-bottom:16px;">${t.title} — testas</h2>`;
       quizSet.forEach((q, qi) => {
         const diffLabel = q.diff === 'lengvas' ? '🟢 lengvas' : (q.diff === 'sunkus' ? '🔴 sunkus' : '🟡 vidutinis');
-        html += `<div class="quiz-q"><p class="qtext">${qi+1}. ${q.q} <span style="font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;">(${diffLabel})</span></p>`;
+        const multiHint = q.multi ? ' <span style="color:var(--gold);">— pasirinkite VISUS tinkamus atsakymus</span>' : '';
+        html += `<div class="quiz-q"><p class="qtext">${qi+1}. ${q.q}${multiHint} <span style="font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;">(${diffLabel})</span></p>`;
         q.opts.forEach((opt, oi) => {
           let cls = 'qopt';
-          if(selections[qi] === oi) cls += ' selected';
+          const isSelected = q.multi ? selections[qi].includes(oi) : selections[qi] === oi;
+          if(isSelected) cls += ' selected';
           if(submitted){
-            if(oi === q.correct) cls += ' correct';
-            else if(selections[qi] === oi) cls += ' incorrect';
+            const isCorrect = q.multi ? q.correct.includes(oi) : oi === q.correct;
+            if(isCorrect) cls += ' correct';
+            else if(isSelected) cls += ' incorrect';
           }
-          html += `<button class="${cls}" data-qi="${qi}" data-oi="${oi}" ${submitted?'disabled':''}>${opt}</button>`;
+          const mark = q.multi ? (isSelected ? '☑ ' : '☐ ') : '';
+          html += `<button class="${cls}" data-qi="${qi}" data-oi="${oi}" ${submitted?'disabled':''}>${mark}${opt}</button>`;
         });
         if(submitted) html += `<div class="explain">${q.ex}</div>`;
         html += `</div>`;
       });
       if(!submitted){
-        const allAnswered = selections.every(s => s !== null);
+        const allAnswered = selections.every((s,i) => quizSet[i].multi ? s.length > 0 : s !== null);
         html += `<button class="submit-btn" id="quizSubmitBtn" ${allAnswered?'':'disabled'}>Pateikti atsakymus</button>`;
       } else {
-        const correctCount = selections.filter((s,i) => s === quizSet[i].correct).length;
+        const correctCount = selections.filter((s,i) => quizSet[i].multi ? arraysEqual(s, quizSet[i].correct) : s === quizSet[i].correct).length;
         const scorePct = Math.round((correctCount/quizSet.length)*100);
         const passThreshold = PASS_THRESHOLD[meta.mode || 'learn'];
         const passed = (correctCount/quizSet.length) >= passThreshold;
         tp.attempts++;
         if(passed && (tp.bestScore === null || scorePct > tp.bestScore)) tp.bestScore = scorePct;
-        else if(tp.bestScore === null) tp.bestScore = null; // keep null if never passed, so topic stays incomplete
         saveProgress();
         html += `<div class="quiz-result">
           <div style="color:var(--muted);font-size:13px;">Rezultatas</div>
@@ -1033,7 +1062,16 @@ function renderTopic(main){
 
       if(!submitted){
         main.querySelectorAll('.qopt').forEach(btn => {
-          btn.addEventListener('click', () => { selections[parseInt(btn.dataset.qi)] = parseInt(btn.dataset.oi); draw(); });
+          btn.addEventListener('click', () => {
+            const qi = parseInt(btn.dataset.qi), oi = parseInt(btn.dataset.oi);
+            if(quizSet[qi].multi){
+              const idx = selections[qi].indexOf(oi);
+              if(idx === -1) selections[qi].push(oi); else selections[qi].splice(idx,1);
+            } else {
+              selections[qi] = oi;
+            }
+            draw();
+          });
         });
         const sb = document.getElementById('quizSubmitBtn');
         if(sb) sb.addEventListener('click', () => { submitted = true; draw(); });
@@ -1181,10 +1219,14 @@ function renderPracticeNews(main, moduleId, practice){
 function renderPracticeAllocation(main, moduleId, practice){
   const capital = moduleStipendija(moduleId);
   const assets = practice.assets;
+  const persona = practice.persona;
   function draw(){
     let html = `<div class="back-link" id="backBtn">← Atgal į modulį</div><div class="page-title">🎯 ${practice.label}</div>
-      <div class="page-sub">Turimas kapitalas: <b style="color:var(--gold)">${fmt(capital)}</b> — paskirstykite procentais tarp 5 aktyvų.</div>
       <div class="content-panel">`;
+    if(persona){
+      html += `<div class="feedback-box" style="margin-top:0;margin-bottom:18px;"><b>${persona.name}:</b> ${persona.desc}</div>`;
+    }
+    html += `<p style="color:var(--muted);font-size:13px;margin-bottom:14px;">Turimas kapitalas: <b style="color:var(--gold)">${fmt(capital)}</b> — paskirstykite procentais tarp 5 aktyvų taip, kaip manote, geriausiai tiktų ${persona?persona.name:'šiam investuotojui'}.</p>`;
     assets.forEach((a,i) => {
       html += `<div class="alloc-row"><div><div class="alloc-name">${a.name}</div><div class="alloc-risk">${a.risk}</div></div>
         <div><input type="number" min="0" max="100" class="alloc-input" id="alloc-${i}" value="0">%</div></div>`;
@@ -1204,12 +1246,24 @@ function renderPracticeAllocation(main, moduleId, practice){
       const numUsed = allocs.filter(v=>v>0).length;
       const weightedVol = allocs.reduce((s,v,i)=>s+(v/100)*assets[i].vol,0);
       const swingEuros = Math.round(capital * weightedVol);
+
       let verdict;
-      if(maxAlloc>60) verdict = 'Portfelis stipriai sutelktas viename aktyve — tai padidina riziką prarasti didelę dalį, jei tas aktyvas nuvertėtų.';
+      if(persona){
+        const diversified = numUsed>=3 && maxAlloc<=50;
+        if(weightedVol <= persona.idealMaxVol && diversified) verdict = `Puikiai pritaikyta ${persona.name} profiliui — santūri rizika ir gera diversifikacija, tinka trumpam laiko horizontui.`;
+        else if(weightedVol <= persona.idealMaxVol && !diversified) verdict = `Volatilumas priimtinas, bet portfelis per mažai diversifikuotas kelių aktyvų atžvilgiu — verta paskirstyti plačiau.`;
+        else if(weightedVol <= persona.idealMaxVol*1.8) verdict = `Šiek tiek per rizikinga tokiam artimam pensijos horizontui — apsvarstykite daugiau saugesnių aktyvų (Saugus Bankas, Maisto Grandinė).`;
+        else verdict = `Per daug rizikinga ${persona.name} situacijai — toks paskirstymas geriau tiktų jaunesniam investuotojui su ilgu laiko horizontu, ne artimam pensijai.`;
+      } else if(maxAlloc>60) verdict = 'Portfelis stipriai sutelktas viename aktyve — tai padidina riziką prarasti didelę dalį, jei tas aktyvas nuvertėtų.';
       else if(numUsed<=2) verdict = 'Naudojate mažai skirtingų aktyvų — diversifikacija galėtų būti platesnė.';
       else if(maxAlloc<=40 && numUsed>=4) verdict = 'Gerai diversifikuotas portfelis — rizika paskirstyta tarp kelių skirtingo rizikos lygio aktyvų.';
       else verdict = 'Vidutiniškai diversifikuotas portfelis — neblogas balansas, bet galėtumėte paskirstyti dar tolygiau.';
-      document.getElementById('allocFeedback').innerHTML = `<div class="feedback-box"><b>Įvertintas portfelio volatilumas:</b> ${(weightedVol*100).toFixed(1)}%<br><b>Galimas dienos svyravimas:</b> apytiksliai ±${fmt(swingEuros)}<br><b>Didžiausia koncentracija viename aktyve:</b> ${maxAlloc}%<br><br>${verdict}</div>
+
+      const closingNote = persona
+        ? `<br><br><b>Paaiškinimas:</b> investuotojui, artimam pensijai (trumpas laiko horizontas), paprastai rekomenduojama didesnę portfelio dalį skirti mažo volatilumo aktyvams (pvz. Saugus Bankas, Maisto Grandinė), o itin rizikingus aktyvus (pvz. KriptoImpulsas) laikyti nedidele dalimi arba visai vengti — nes lieka mažai laiko atsigauti po galimo kritimo. Tai tiesiogiai remiasi tuo, ką išmokote apie rizikos toleranciją ir laiko horizontą.`
+        : '';
+
+      document.getElementById('allocFeedback').innerHTML = `<div class="feedback-box"><b>Įvertintas portfelio volatilumas:</b> ${(weightedVol*100).toFixed(1)}%<br><b>Galimas dienos svyravimas:</b> apytiksliai ±${fmt(swingEuros)}<br><b>Didžiausia koncentracija viename aktyve:</b> ${maxAlloc}%<br><br>${verdict}${closingNote}</div>
         <button class="continue-btn" id="finishBtn">Baigti modulį →</button>`;
       document.getElementById('finishBtn').addEventListener('click', () => {
         progress[moduleId].practice.done = true;
