@@ -1,0 +1,26 @@
+{
+  "name": "Investavimo Akademija",
+  "short_name": "InvestAkademija",
+  "description": "Interaktyvus investavimo mokymosi kursas su teorija, testais ir praktika",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0B0F14",
+  "theme_color": "#0B0F14",
+  "lang": "lt",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

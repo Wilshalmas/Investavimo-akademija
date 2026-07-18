@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investavimo Akademija</title>
+<meta name="theme-color" content="#0B0F14">
+<meta name="description" content="Interaktyvus investavimo mokymosi kursas">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0F14; --bg-panel:#121821; --bg-card:#161D28; --ink:#EDEAE0; --muted:#8B93A1;
+    --gain:#3FA796; --loss:#C1553B; --gold:#D9A441; --border:#232B36; --locked:#2b3038;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+  #app{max-width:980px;margin:0 auto;padding:0 20px 60px;}
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
+  .hidden{display:none !important;}
+  a{color:var(--gold);}
+
+  header.top{padding:22px 0 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:0;background:var(--bg);z-index:10;}
+  header.top h1{font-size:22px;font-weight:700;letter-spacing:.4px;cursor:pointer;}
+  header.top h1 span{color:var(--gold);}
+  .nav-right{display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);}
+  .nav-link{cursor:pointer;padding:6px 10px;border-radius:5px;}
+  .nav-link:hover{color:var(--ink);background:var(--bg-card);}
+  .stipendija-chip{background:var(--bg-card);border:1px solid var(--gold);color:var(--gold);padding:5px 12px;border-radius:20px;font-weight:700;}
+  .sync-status{cursor:default;font-size:14px;}
+
+  .page-title{font-size:24px;margin:22px 0 4px;}
+  .page-sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
+
+  .module-row{display:flex;gap:16px;align-items:flex-start;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:12px;cursor:pointer;transition:border-color .15s;}
+  .module-row:hover{border-color:var(--gold);}
+  .module-row.locked{opacity:.5;cursor:not-allowed;}
+  .module-row.locked:hover{border-color:var(--border);}
+  .module-badge-icon{font-size:28px;width:44px;text-align:center;flex-shrink:0;}
+  .module-row h3{font-size:16.5px;margin-bottom:3px;}
+  .module-row p{font-size:12.5px;color:var(--muted);margin:0 0 8px;}
+  .module-meta{display:flex;gap:10px;align-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;}
+  .tag{padding:3px 9px;border-radius:20px;}
+  .tag-open{background:rgba(217,164,65,0.15);color:var(--gold);}
+  .tag-done{background:rgba(63,167,150,0.15);color:var(--gain);}
+  .tag-locked{background:var(--locked);color:var(--muted);}
+  .mini-bar-track{width:100px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+  .mini-bar-fill{height:100%;background:var(--gold);}
+
+  .back-link{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);cursor:pointer;display:inline-block;margin:18px 0 10px;}
+  .back-link:hover{color:var(--gold);}
+  .topic-list{display:flex;flex-direction:column;gap:8px;margin-top:16px;}
+  .topic-row{display:flex;align-items:center;gap:12px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:12px 16px;cursor:pointer;}
+  .topic-row:hover{border-color:var(--gold);}
+  .topic-row.disabled{opacity:.4;cursor:not-allowed;}
+  .topic-num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);width:22px;}
+  .topic-row .t-title{flex:1;font-size:14px;}
+  .topic-score{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gain);}
+  .topic-status-icon{font-size:15px;}
+  .capstone-row{border-color:var(--gold);}
+  .practice-row{border-style:dashed;}
+
+  .content-panel{background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;padding:24px 26px;margin-top:14px;}
+  .theory-section{margin-bottom:18px;}
+  .theory-section h3{font-size:15.5px;color:var(--gold);margin-bottom:8px;}
+  .theory-section p{font-size:14px;line-height:1.7;color:#D8D5C9;}
+  .optional-box{margin-top:16px;border:1px dashed var(--border);border-radius:6px;padding:12px 14px;}
+  .optional-box summary{cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--gold);}
+  .optional-box p{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6;}
+  .timer-wrap{margin-top:18px;}
+  .timer-track{width:100%;height:6px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:8px;}
+  .timer-fill{height:100%;background:var(--gold);width:0%;transition:width 1s linear;}
+  .timer-label{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);}
+  .continue-btn{margin-top:14px;background:var(--gold);color:#161207;border:none;padding:10px 20px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12.5px;cursor:pointer;}
+  .continue-btn:disabled{background:#3a3a3a;color:#888;cursor:not-allowed;}
+
+  .quiz-q{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+  .quiz-q:last-of-type{border-bottom:none;}
+  .quiz-q p.qtext{font-size:14px;font-weight:600;margin-bottom:9px;}
+  .qopt{display:block;width:100%;text-align:left;background:var(--bg-card);border:1px solid var(--border);color:var(--ink);padding:9px 13px;border-radius:5px;font-size:13px;margin-bottom:7px;cursor:pointer;}
+  .qopt:hover{border-color:var(--gold);}
+  .qopt.selected{border-color:var(--gold);background:#1b2029;}
+  .qopt.correct{border-color:var(--gain);background:rgba(63,167,150,0.12);}
+  .qopt.incorrect{border-color:var(--loss);background:rgba(193,85,59,0.12);}
+  .qopt:disabled{cursor:default;}
+  .explain{font-size:12px;color:var(--muted);margin-top:5px;}
+  .submit-btn{background:var(--gold);color:#161207;border:none;padding:10px 20px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12.5px;cursor:pointer;}
+  .submit-btn:disabled{background:#3a3a3a;color:#888;cursor:not-allowed;}
+  .quiz-result{text-align:center;padding:16px;}
+  .quiz-result .score{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;margin:8px 0;}
+
+  table.transcript{width:100%;border-collapse:collapse;font-size:13px;}
+  table.transcript th, table.transcript td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);}
+  table.transcript th{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;}
+  .score-cell{font-family:'JetBrains Mono',monospace;}
+  .badge-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+  .badge-chip{display:flex;align-items:center;gap:6px;background:var(--bg-card);border:1px solid var(--gold);border-radius:20px;padding:6px 12px;font-size:12px;}
+
+  .practice-item{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-bottom:12px;}
+  .practice-item p.headline{font-size:14px;margin:0 0 10px;}
+  .choice-row{display:flex;gap:10px;}
+  .choice-btn{flex:1;padding:9px;border-radius:5px;border:1px solid var(--border);background:var(--bg-panel);color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:12.5px;cursor:pointer;}
+  .choice-btn:hover{border-color:var(--gold);}
+  .choice-btn.right{border-color:var(--gain);background:rgba(63,167,150,0.15);}
+  .choice-btn.wrong{border-color:var(--loss);background:rgba(193,85,59,0.15);}
+  .choice-btn:disabled{cursor:default;}
+  .feedback-box{margin-top:16px;padding:14px 16px;border-radius:6px;border-left:3px solid var(--gold);background:var(--bg-card);font-size:13.5px;line-height:1.6;color:#D8D5C9;}
+
+  .certificate{text-align:center;padding:40px 20px;position:relative;overflow:hidden;}
+  .certificate h2{font-size:28px;color:var(--gold);margin-bottom:8px;}
+  .cert-box{border:2px solid var(--gold);border-radius:10px;padding:34px 26px;max-width:560px;margin:20px auto;background:var(--bg-card);}
+  .cert-box .cname{font-family:'Fraunces',serif;font-size:26px;margin:14px 0;color:var(--ink);}
+  .confetti{position:absolute;top:-10px;width:8px;height:8px;opacity:0.9;animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(500px) rotate(360deg);opacity:0;}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <h1 id="homeLink">INVESTAVIMO <span>AKADEMIJA</span></h1>
+    <div class="nav-right">
+      <span class="sync-status" id="syncStatus" title="Sinchronizavimo būsena">⏳</span>
+      <span class="stipendija-chip" id="stipChip">€0 stipendija</span>
+      <span class="nav-link" id="navTranscript">Pažymių knygelė</span>
+    </div>
+  </header>
+  <div id="main"></div>
+</div>
+
+<!-- ============ FIREBASE (progreso saugojimui debesyje) ============ -->
+<!-- Jei nenorite naudoti Firebase, tiesiog palikite firebaseConfig tuščią (null) -->
+<!-- žemiau — programėlė automatiškai naudos tik šio įrenginio atmintį (localStorage). -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* ==========================================================================
+   FIREBASE KONFIGŪRACIJA
+   1. Eikite į https://console.firebase.google.com ir susikurkite nemokamą projektą
+   2. Project settings (⚙️) → General → "Your apps" → pridėkite Web app (</>) 
+   3. Nukopijuokite jums parodytą firebaseConfig objektą ir įklijuokite vietoj žemiau esančio
+   4. Firestore Database skiltyje spauskite "Create database" (pasirinkite bet kurį regioną)
+   5. Authentication skiltyje → Sign-in method → įjunkite "Anonymous"
+   6. Firestore → Rules skiltyje įklijuokite taisykles iš pridėto README.md failo
+   ========================================================================== */
+const firebaseConfig = null; /* <-- ĮKLIJUOKITE SAVO firebaseConfig OBJEKTĄ ČIA, pvz.:
+const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "jusu-projektas.firebaseapp.com",
+  projectId: "jusu-projektas",
+  storageBucket: "jusu-projektas.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef123456"
+};
+*/
+
+let fbEnabled = false;
+let fbUser = null;
+let fbDb = null;
+
+function setSyncStatus(state){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  if(state === 'offline') { el.textContent = '📴'; el.title = 'Offline — duomenys saugomi tik šiame įrenginyje'; }
+  else if(state === 'syncing') { el.textContent = '🔄'; el.title = 'Sinchronizuojama...'; }
+  else if(state === 'synced') { el.textContent = '☁️'; el.title = 'Progresas sinchronizuotas debesyje'; }
+  else if(state === 'local') { el.textContent = '💾'; el.title = 'Saugoma tik šiame įrenginyje (Firebase neįjungtas)'; }
+}
+
+async function initFirebase(){
+  if(!firebaseConfig){ setSyncStatus('local'); return; }
+  try{
+    firebase.initializeApp(firebaseConfig);
+    fbDb = firebase.firestore();
+    await firebase.auth().signInAnonymously();
+    firebase.auth().onAuthStateChanged(user => { fbUser = user; });
+    await new Promise(resolve => {
+      const unsub = firebase.auth().onAuthStateChanged(user => { if(user){ fbUser = user; unsub(); resolve(); } });
+    });
+    fbEnabled = true;
+    setSyncStatus('synced');
+  }catch(e){
+    console.error('Firebase init failed, falling back to local storage only:', e);
+    fbEnabled = false;
+    setSyncStatus('offline');
+  }
+}
+</script>
+
+<script>
+const PLANNED_MODULES = [
+  {id:'m1', built:true, title:'Investavimo pagrindai', subtitle:'Akcijos, obligacijos, birža ir rinkos kalba', icon:'🏛️', badgeName:'Pagrindų Meistras'},
+  {id:'m2', built:true, title:'Rizika ir diversifikacija', subtitle:'Kaip subalansuoti riziką ir grąžą', icon:'⚖️', badgeName:'Rizikos Valdytojas'},
+  {id:'m3', built:false, title:'Finansinių ataskaitų skaitymas', subtitle:'Pajamų ataskaita, balansas, pagrindiniai rodikliai', icon:'📊'},
+  {id:'m4', built:false, title:'Grafikų skaitymas', subtitle:'Žvakės, trendo linijos, kainų šablonai', icon:'📈'},
+  {id:'m5', built:false, title:'Techniniai indikatoriai', subtitle:'SMA, RSI, MACD ir kiti įrankiai', icon:'🧭'},
+  {id:'m6', built:false, title:'Investavimo strategijos', subtitle:'Value, growth, indeksinis investavimas ir kt.', icon:'🧩'},
+  {id:'m7', built:false, title:'Investuotojo psichologija', subtitle:'Emocijos, klaidos ir disciplina', icon:'🧠'},
+  {id:'m8', built:false, title:'Baigiamasis prekybos simuliatorius', subtitle:'Viską sujungianti praktika', icon:'🏁'}
+];
+const BUILT_CHAIN = PLANNED_MODULES.filter(m => m.built).map(m => m.id);
+
+/* ============ MODULE 1 CONTENT ============ */
+
+const M1_TOPICS = [
+{id:'t1', title:'Kas yra akcija?', theory:[
+  {h:'Nuosavybės dalis', p:'Akcija yra maža įmonės nuosavybės dalis. Nusipirkę akciją, tampate vienu iš daugelio įmonės savininkų (akcininku) ir įgyjate teisę į proporcingą dalį jos turto bei pelno.'},
+  {h:'Kodėl įmonės išleidžia akcijas?', p:'Įmonės parduoda akcijas, kad pritrauktų kapitalą augimui — naujiems projektams, plėtrai ar skoloms padengti — nesiimdamos banko paskolos ir jos palūkanų.'},
+  {h:'Akcininko teisės', p:'Akcininkas paprastai turi balsavimo teisę svarbiuose įmonės sprendimuose, teisę gauti dividendus, jei jie skelbiami, ir teisę į dalį turto, jei įmonė būtų likviduojama.'}
+], quiz:[
+  {q:'Ką reiškia turėti įmonės akciją?', opts:['Paskolinote įmonei pinigų','Turite nuosavybės dalį įmonėje','Esate įmonės darbuotojas','Turite teisę į fiksuotą palūkanų mokėjimą'], correct:1, ex:'Akcija reiškia nuosavybės dalį — akcininkas yra vienas iš įmonės savininkų.'},
+  {q:'Kodėl įmonės dažnai renkasi leisti akcijas, o ne imti paskolą?', opts:['Nes akcijos visada pigesnės nei paskolos administravimas','Nes tai leidžia pritraukti kapitalą be paskolos palūkanų','Nes tai privaloma pagal įstatymą','Nes akcijos negrąžinamos investuotojams niekada'], correct:1, ex:'Akcijų pardavimas leidžia gauti kapitalą nesiimant skolinių įsipareigojimų su palūkanomis.'},
+  {q:'Kuri iš šių yra akcininko teisė?', opts:['Garantuotas fiksuotas mokėjimas kas mėnesį','Teisė valdyti įmonės kasdienę veiklą vienam asmeniui','Balsavimo teisė svarbiuose įmonės sprendimuose','Teisė reikalauti pinigų grąžinimo bet kada'], correct:2, ex:'Akcininkai dažniausiai turi balsavimo teisę, proporcingą jų turimų akcijų kiekiui.'}
+]},
+{id:'t2', title:'Kas yra obligacija?', theory:[
+  {h:'Paskola, ne nuosavybė', p:'Pirkdami obligaciją, jūs iš esmės paskolinate pinigus įmonei ar valstybei. Jūs tampate kreditoriumi, o ne savininku, ir turite teisę atgauti pinigus su sutartomis palūkanomis.'},
+  {h:'Kuponas ir terminas', p:'Obligacija turi nustatytą palūkanų normą (kuponą) ir grąžinimo terminą (išpirkimo datą), kada pagrindinė suma grąžinama investuotojui.'},
+  {h:'Obligacijos vs akcijos', p:'Obligacijos paprastai laikomos stabilesnėmis ir mažiau rizikingomis nei akcijos, tačiau jų potenciali grąža taip pat mažesnė.'}
+], quiz:[
+  {q:'Perkant obligaciją, investuotojas tampa...', opts:['Įmonės dalies savininku','Įmonės kreditoriumi (skolintoju)','Įmonės darbuotoju','Įmonės valdybos nariu'], correct:1, ex:'Obligacijos pirkėjas paskolina pinigus, todėl tampa kreditoriumi, ne savininku.'},
+  {q:'Kas yra obligacijos „kuponas“?', opts:['Nuolaidos kodas obligacijai pirkti','Nustatyta palūkanų norma, mokama investuotojui','Obligacijos pardavimo mokestis','Akcijos kainos pokytis'], correct:1, ex:'Kuponas — tai palūkanų norma, kurią emitentas moka obligacijos savininkui.'},
+  {q:'Palyginus su akcijomis, obligacijos paprastai yra...', opts:['Rizikingesnės, bet su didesne potencialia grąža','Stabilesnės, su mažesne potencialia grąža','Visiškai be jokios rizikos','Neįmanoma palyginti'], correct:1, ex:'Obligacijos dažniausiai laikomos stabilesnėmis, tačiau ir jų grąžos potencialas mažesnis.'}
+]},
+{id:'t3', title:'Kaip veikia birža?', theory:[
+  {h:'Prekybos vieta', p:'Birža yra sistema — šiandien dažniausiai elektroninė — kurioje susitinka pirkėjų ir pardavėjų užsakymai ir sudaromi sandoriai.'},
+  {h:'Bid ir ask kainos', p:'Kiekvienu momentu egzistuoja „bid“ kaina (už kurią pirkėjai nori pirkti) ir „ask“ kaina (už kurią pardavėjai nori parduoti). Sandoris įvyksta, kai šios kainos susitinka.'},
+  {h:'Likvidumas', p:'Likvidumas parodo, kaip lengvai aktyvą galima nupirkti ar parduoti, žymiai nepakeičiant jo kainos. Populiarios akcijos paprastai yra likvidesnės nei retai prekiaujamos.'}
+], quiz:[
+  {q:'Kas yra „ask“ kaina?', opts:['Kaina, už kurią pardavėjai nori parduoti','Kaina, už kurią pirkėjai nori pirkti','Fiksuota valstybės nustatyta kaina','Vidutinė metinė kaina'], correct:0, ex:'„Ask“ yra minimali kaina, už kurią pardavėjas sutinka parduoti.'},
+  {q:'Kas atsitinka, kai bid ir ask kainos susitinka?', opts:['Birža sustabdo prekybą','Įvyksta sandoris','Akcija pašalinama iš biržos','Kaina automatiškai padvigubėja'], correct:1, ex:'Sandoris sudaromas tada, kai pirkėjo ir pardavėjo kainos sutampa.'},
+  {q:'Aukštas likvidumas reiškia, kad...', opts:['Aktyvą sunku parduoti be didelio kainos pokyčio','Aktyvą lengva pirkti/parduoti nepakeičiant žymiai kainos','Aktyvo kaina niekada nesikeičia','Aktyvas nėra prieinamas biržoje'], correct:1, ex:'Didelis likvidumas reiškia lengvą pirkimą/pardavimą be didelio poveikio kainai.'}
+]},
+{id:'t4', title:'Pasiūla ir paklausa', theory:[
+  {h:'Pagrindinis kainos variklis', p:'Kai daugiau žmonių nori pirkti akciją nei parduoti, kaina kyla. Kai atvirkščiai — daugiau norinčių parduoti — kaina krenta.'},
+  {h:'Kas veikia paklausą', p:'Paklausą didina geros naujienos, augimo lūkesčiai ar bendras optimizmas rinkoje; mažina — blogos naujienos, nusivylimas ar baimė.'}
+], quiz:[
+  {q:'Kas nutinka kainai, kai pirkėjų žymiai daugiau nei pardavėjų?', opts:['Kaina paprastai kyla','Kaina paprastai krenta','Kaina nesikeičia','Prekyba automatiškai sustabdoma'], correct:0, ex:'Didesnė paklausa nei pasiūla kelia kainą.'},
+  {q:'Kuris veiksnys paprastai mažina akcijos paklausą?', opts:['Netikėtai geras pelnas','Optimistinės augimo prognozės','Blogos naujienos apie įmonę','Naujas didelis kontraktas'], correct:2, ex:'Blogos naujienos silpnina investuotojų norą pirkti, taigi mažina paklausą.'},
+  {q:'Pasiūlos ir paklausos principas biržoje veikia panašiai kaip...', opts:['Fiksuotų valstybės kainų sistema','Bet kurioje kitoje rinkoje su pirkėjais ir pardavėjais','Loterija','Nekintanti matematinė formulė be išorinių veiksnių'], correct:1, ex:'Akcijų kainos formavimasis remiasi tais pačiais principais kaip ir bet kurioje rinkoje su laisva prekyba.'}
+]},
+{id:'t5', title:'Akcijos, obligacijos ir ETF', theory:[
+  {h:'ETF — krepšelis viename pirkinyje', p:'ETF (biržoje prekiaujamas fondas) sudaro dešimtys ar šimtai skirtingų akcijų ar obligacijų, supakuotų į vieną vertybinį popierių, kuriuo prekiaujama kaip paprasta akcija.'},
+  {h:'Kodėl tai patogu', p:'Nupirkę vieną ETF vienetą, iškart gaunate diversifikaciją tarp daugelio įmonių — nereikia pirkti kiekvienos atskirai.'},
+  {h:'Trumpas palyginimas', p:'Akcija = nuosavybė vienoje įmonėje. Obligacija = paskola vienam skolininkui. ETF = krepšelis daugelio aktyvų vienu pirkiniu.'}
+], quiz:[
+  {q:'Kas yra ETF?', opts:['Vienos įmonės akcija','Krepšelis kelių aktyvų, kuriuo prekiaujama kaip akcija','Valstybės išleista obligacija','Banko indėlio sąskaita'], correct:1, ex:'ETF apjungia kelis aktyvus į vieną, biržoje prekiaujamą vertybinį popierių.'},
+  {q:'Pagrindinis ETF privalumas, palyginus su viena akcija, yra...', opts:['Garantuotas pelnas','Įdėtinė diversifikacija','Nulinė rizika','Fiksuotos palūkanos'], correct:1, ex:'Vienu pirkimu gaunate dalį daugelio skirtingų įmonių — tai sumažina koncentracijos riziką.'},
+  {q:'Kuris teiginys teisingas?', opts:['ETF gali sekti tik vieną konkrečią akciją','Obligacija reiškia nuosavybės dalį įmonėje','Akcija reiškia paskolą įmonei','ETF gali apimti dešimtis ar šimtus skirtingų vertybinių popierių'], correct:3, ex:'ETF būdingas bruožas — jis apjungia daug skirtingų aktyvų viename fonde.'}
+]},
+{id:'t6', title:'Dividendai', theory:[
+  {h:'Kas yra dividendas', p:'Dividendas — tai dalis įmonės pelno, išmokama akcininkams, dažniausiai kas ketvirtį ar kartą per metus.'},
+  {h:'Dividendų pajamingumas', p:'Dividendų pajamingumas (yield) parodo, kiek dividendų per metus gaunate palyginus su akcijos kaina — tai leidžia palyginti skirtingas įmones.'},
+  {h:'Ne visos įmonės moka dividendus', p:'Sparčiai augančios įmonės dažnai pelną investuoja atgal į verslą, o ne moka dividendus, tikėdamosis didesnio kainos augimo ateityje.'}
+], quiz:[
+  {q:'Kas yra dividendas?', opts:['Mokestis, kurį akcininkas moka įmonei','Dalis įmonės pelno, išmokama akcininkams','Paskolos grąžinimas bankui','Akcijos pirkimo kaina'], correct:1, ex:'Dividendas yra pelno dalis, paskirstoma akcininkams.'},
+  {q:'Ką parodo dividendų pajamingumas (yield)?', opts:['Bendrą įmonės pelną per metus','Kiek dividendų gaunama palyginus su akcijos kaina','Akcijos kainos pokytį per dieną','Įmonės darbuotojų skaičių'], correct:1, ex:'Yield leidžia palyginti dividendų dydį santykinai su kaina tarp skirtingų įmonių.'},
+  {q:'Kodėl kai kurios sparčiai augančios įmonės nemoka dividendų?', opts:['Nes tai draudžiama pradedančioms įmonėms','Nes jos investuoja pelną atgal į augimą','Nes jos neturi akcininkų','Nes dividendai visada privalomi tik senoms įmonėms'], correct:1, ex:'Augimo įmonės dažnai renkasi pelną reinvestuoti, o ne dalinti akcininkams.'}
+]},
+{id:'t7', title:'Rinkos dalyviai', theory:[
+  {h:'Mažmeniniai investuotojai', p:'Tai pavieniai žmonės, investuojantys savo asmeninius pinigus per brokerio sąskaitas.'},
+  {h:'Instituciniai investuotojai', p:'Tai didelės organizacijos — pensijų fondai, investiciniai fondai, draudimo bendrovės — valdančios didelius kapitalo kiekius.'},
+  {h:'Rinkos formuotojai', p:'Rinkos formuotojai (market makers) nuolat siūlo pirkti ir parduoti tam tikrus vertybinius popierius, taip palaikydami rinkos likvidumą.'}
+], quiz:[
+  {q:'Kas yra mažmeninis investuotojas?', opts:['Didelis pensijų fondas','Pavienis asmuo, investuojantis savo pinigus','Vyriausybinė institucija','Birža pati'], correct:1, ex:'Mažmeninis investuotojas yra individualus asmuo, investuojantis asmeninius pinigus.'},
+  {q:'Kas priskiriama instituciniams investuotojams?', opts:['Pavieniai smulkūs investuotojai','Pensijų fondai ir investiciniai fondai','Vidutinės mokyklos moksleiviai','Vienos šeimos taupomosios sąskaitos'], correct:1, ex:'Instituciniai investuotojai — tai stambios organizacijos, valdančios didelį kapitalą.'},
+  {q:'Kokia yra rinkos formuotojo (market maker) funkcija?', opts:['Nustatyti fiksuotą valstybės kainą','Nuolat siūlyti pirkimo ir pardavimo kainas, palaikant likvidumą','Reguliuoti mokesčius','Valdyti visas biržas pasaulyje'], correct:1, ex:'Rinkos formuotojai palaiko nuolatinį pirkimo/pardavimo pasiūlymų srautą, taip užtikrindami likvidumą.'}
+]},
+{id:'t8', title:'Rinkos terminai', theory:[
+  {h:'Bull ir bear rinka', p:'„Bull market“ (buliaus rinka) — laikotarpis, kai kainos ilgą laiką kyla ir vyrauja optimizmas. „Bear market“ (lokio rinka) — priešingai, kainos ilgai krenta, vyrauja pesimizmas.'},
+  {h:'IPO', p:'IPO (pirminis viešas siūlymas) — tai momentas, kai privati įmonė pirmą kartą parduoda savo akcijas viešai biržoje.'},
+  {h:'Rinkos kapitalizacija', p:'Rinkos kapitalizacija (market cap) — bendra visų įmonės akcijų vertė (kaina × akcijų skaičius), naudojama įmonės dydžiui įvertinti.'}
+], quiz:[
+  {q:'Kas apibūdina „bull market“?', opts:['Ilgalaikis kainų kritimas','Ilgalaikis kainų kilimas ir optimizmas','Vienos dienos kainos šuolis','Biržos uždarymas'], correct:1, ex:'Bull market reiškia ilgalaikį augimo ir optimizmo laikotarpį rinkoje.'},
+  {q:'Kas yra IPO?', opts:['Įmonės bankroto procesas','Pirmas kartas, kai įmonė parduoda akcijas viešai','Metinė įmonės ataskaita','Dividendų mokėjimo diena'], correct:1, ex:'IPO — tai privačios įmonės akcijų debiutas viešoje biržoje.'},
+  {q:'Rinkos kapitalizacija apskaičiuojama kaip...', opts:['Metinis pelnas padalintas iš darbuotojų skaičiaus','Akcijos kaina padauginta iš visų akcijų skaičiaus','Bendra įmonės skola','Vidutinė dividendų suma'], correct:1, ex:'Market cap = akcijos kaina × bendras akcijų skaičius rinkoje.'}
+]},
+{id:'t9', title:'Kotiruočių skaitymas', theory:[
+  {h:'Kainos ir pokytis', p:'Kotiruotėje paprastai matote dabartinę kainą ir pokytį (procentais ar suma) nuo praėjusios prekybos dienos uždarymo.'},
+  {h:'Apimtis (volume)', p:'Apimtis rodo, kiek akcijų buvo nupirkta ar parduota per tam tikrą laikotarpį — didesnė apimtis dažnai reiškia stipresnį rinkos susidomėjimą.'},
+  {h:'52 savaičių intervalas', p:'52 savaičių aukščiausia ir žemiausia riba parodo, kokiame kainų diapazone akcija prekiavo per pastaruosius metus — tai padeda įvertinti dabartinę kainą kontekste.'}
+], optional:{h:'Papildomai: kaip skaityti pilną kotiruotės lentelę', p:'Profesionalios kotiruotės dažnai papildomai rodo P/E rodiklį (kainos ir pelno santykį), rinkos kapitalizaciją bei dividendų pajamingumą vienoje vietoje — tai leidžia greitai palyginti kelias įmones nesigilinant į pilnas ataskaitas.'},
+quiz:[
+  {q:'Ką rodo akcijos „apimtis“ (volume)?', opts:['Įmonės metinį pelną','Kiek akcijų buvo nupirkta/parduota per laikotarpį','Akcijos kainą prieš metus','Akcininkų skaičių'], correct:1, ex:'Apimtis parodo prekybos aktyvumą — kiek akcijų pakeitė savininką.'},
+  {q:'Ką parodo 52 savaičių aukščiausia ir žemiausia riba?', opts:['Įmonės amžių','Kainų diapazoną per pastaruosius metus','Dividendų dydį','Akcininkų sąrašą'], correct:1, ex:'Tai padeda suprasti, ar dabartinė kaina yra arti metinio maksimumo ar minimumo.'},
+  {q:'Kotiruotėje matomas „pokytis“ paprastai lyginamas su...', opts:['Praėjusio mėnesio vidurkiu','Praėjusios prekybos dienos uždarymo kaina','Įmonės įkūrimo kaina','Konkurento kaina'], correct:1, ex:'Dienos pokytis dažniausiai skaičiuojamas nuo ankstesnės uždarymo kainos.'}
+]},
+{id:'t10', title:'Investavimo sąskaitų tipai', theory:[
+  {h:'Maklerio sąskaita', p:'Standartinė investavimo sąskaita, per kurią perkate ir parduodate vertybinius popierius atviroje rinkoje.'},
+  {h:'Mokesčių atžvilgiu privilegijuotos sąskaitos', p:'Daugelyje šalių egzistuoja specialios pensijų ar taupymo sąskaitos su mokesčių lengvatomis, skatinančios ilgalaikį investavimą — konkrečios taisyklės skiriasi priklausomai nuo šalies.'},
+  {h:'Pasirinkimas priklauso nuo tikslo', p:'Trumpalaikiams tikslams dažniau tinka paprasta maklerio sąskaita, o ilgalaikiam pensijos kaupimui — specializuotos, mokesčių lengvatas suteikiančios sąskaitos.'}
+], quiz:[
+  {q:'Kas yra standartinė maklerio sąskaita?', opts:['Sąskaita, per kurią perkami/parduodami vertybiniai popieriai','Banko taupomoji sąskaita be jokių investicijų','Valstybės pensijų fondas','Grynųjų pinigų seifas'], correct:0, ex:'Maklerio sąskaita — pagrindinis įrankis prekybai vertybiniais popieriais.'},
+  {q:'Kodėl egzistuoja mokesčių atžvilgiu privilegijuotos sąskaitos?', opts:['Kad apsunkintų investavimą','Kad paskatintų ilgalaikį taupymą/investavimą','Nes jos privalomos visiems','Nes jos pakeičia maklerio sąskaitą visose situacijose'], correct:1, ex:'Tokios sąskaitos suteikia mokesčių lengvatas, skatinančias ilgalaikį kaupimą.'},
+  {q:'Trumpalaikiams finansiniams tikslams paprastai geriau tinka...', opts:['Specializuota pensijų sąskaita su apribojimais','Paprasta maklerio sąskaita','Jokia sąskaita nereikalinga','Tik grynųjų pinigų laikymas namuose'], correct:1, ex:'Maklerio sąskaita suteikia lankstumą, reikalingą trumpesniems tikslams.'}
+]}
+];
+
+const M1_CASE_STUDY = {
+  title:'Atvejo analizė: Jūsų pirmoji investicija',
+  scenario:'Turite €2000 investavimui. Radote įmonę „NordTech“: rinkos kapitalizacija €50 mln., bid kaina €19.80, ask kaina €20.00, 52 savaičių intervalas €15–€28. Alternatyva — platus rinkos ETF, sekantis 500 didžiausių įmonių.',
+  questions:[
+    {q:'Kokią kainą realiai sumokėtumėte, jei pirktumėte NordTech akciją dabar?', opts:['€19.80 (bid)','€20.00 (ask)','€15 (52 sav. minimumas)','€50 mln. (kapitalizacija)'], correct:1, ex:'Pirkėjai moka „ask“ kainą — kainą, už kurią pardavėjai sutinka parduoti.'},
+    {q:'Rinkos kapitalizacija €50 mln. reiškia, kad...', opts:['Įmonė turi €50 mln. grynaisiais','Bendra visų įmonės akcijų vertė rinkoje yra €50 mln.','Įmonė kasmet uždirba €50 mln. pelno','Tiek kainuoja viena akcija'], correct:1, ex:'Market cap yra akcijos kaina padauginta iš visų akcijų skaičiaus.'},
+    {q:'Palyginus su viena akcija, plataus rinkos ETF pirkimas suteikia...', opts:['Didesnę koncentruotą riziką','Įdėtinę diversifikaciją tarp daugelio įmonių','Garantuotus dividendus','Fiksuotą palūkanų normą'], correct:1, ex:'ETF apjungia daug įmonių, todėl automatiškai sumažina koncentracijos riziką.'},
+    {q:'Akcijos 52 sav. intervalas €15–€28, o dabartinė kaina €20 reiškia, kad...', opts:['Akcija prekiauja maždaug vidury metinio diapazono','Akcija yra prie metinio maksimumo','Akcija yra prie metinio minimumo','Informacijos nepakanka nieko spręsti'], correct:0, ex:'€20 yra tarp €15 ir €28, artimiau viduriui nei kraštams.'}
+  ]
+};
+
+const M1_NEWS_PRACTICE = [
+  {text:'Įmonė paskelbė rekordinį ketvirčio pelną, gerokai viršijantį analitikų lūkesčius.', answer:'up', why:'Geresni nei tikėtasi rezultatai paprastai didina pasitikėjimą ir kelia kainą.'},
+  {text:'Pagrindinė gamykla sustabdė darbą dėl gaisro, gamyba stabdoma neribotam laikui.', answer:'down', why:'Gamybos sutrikimas mažina numatomas pajamas.'},
+  {text:'Analitikai pakėlė įmonės akcijų kainos prognozę, remdamiesi stipriu augimu.', answer:'up', why:'Pakelta prognozė signalizuoja rinkai apie geresnes perspektyvas.'},
+  {text:'Konkurentas pristatė gerokai pigesnį analogišką produktą.', answer:'down', why:'Didėjanti konkurencija gali sumažinti pardavimus.'},
+  {text:'Vyriausybė paskelbė naujas, palankias mokesčių lengvatas šiam sektoriui.', answer:'up', why:'Palankesnė mokesčių aplinka gerina pelningumo perspektyvas.'}
+];
+
+/* ============ MODULE 2 CONTENT — Rizika ir diversifikacija ============ */
+
+const M2_TOPICS = [
+{id:'t1', title:'Kas yra rizika investuojant?', theory:[
+  {h:'Rizikos apibrėžimas', p:'Investavimo rizika — tai tikimybė, kad faktiniai rezultatai skirsis nuo tikėtų, įskaitant galimybę prarasti dalį ar visą investuotą sumą.'},
+  {h:'Rizika nėra vien blogis', p:'Be tam tikros rizikos paprastai neįmanoma tikėtis didesnės grąžos nei tą duoda visiškai saugūs instrumentai — rizika ir galimybė yra susijusios.'},
+  {h:'Du pagrindiniai rizikos tipai', p:'Rinkos rizika — bendras visos rinkos kritimas, veikiantis beveik visus aktyvus. Įmonės specifinė rizika — problemos, susijusios tik su konkrečia įmone.'}
+], quiz:[
+  {q:'Kas yra investavimo rizika?', opts:['Garantuotas nuostolis','Tikimybė, kad rezultatai skirsis nuo tikėtų, įskaitant galimą nuostolį','Mokestis už investavimą','Laiko trukmė iki pelno'], correct:1, ex:'Rizika apibūdina neapibrėžtumą dėl to, kokie bus faktiniai rezultatai.'},
+  {q:'Kodėl investuotojai apskritai prisiima riziką?', opts:['Nes tai privaloma pagal įstatymą','Nes rizika susijusi su galimybe gauti didesnę grąžą nei visiškai saugūs instrumentai','Nes rizika visada duoda didesnį pelną','Nes rizikingi aktyvai pigesni'], correct:1, ex:'Didesnė galima grąža paprastai reikalauja prisiimti tam tikrą riziką.'},
+  {q:'„Įmonės specifinė rizika“ apibūdina...', opts:['Riziką, veikiančią visą rinką vienu metu','Riziką, kylančią iš konkrečios įmonės problemų','Valstybės nustatytą mokesčių normą','Biržos veikimo valandas'], correct:1, ex:'Įmonės specifinė rizika susijusi tik su ta viena įmone, ne su visa rinka.'}
+]},
+{id:'t2', title:'Rizikos ir grąžos ryšys', theory:[
+  {h:'Pagrindinis principas', p:'Investuojant galioja pagrindinė taisyklė: didesnė galima grąža paprastai reikalauja prisiimti didesnę riziką.'},
+  {h:'Rizikos premija', p:'Rizikos premija — tai papildoma grąža, kurios investuotojai reikalauja už rizikingesnio aktyvo turėjimą, palyginti su beveik be rizikos instrumentu (pvz., valstybės obligacija).'},
+  {h:'Nėra garantijų', p:'Didesnė rizika nereiškia garantuotos didesnės grąžos — ji tik padidina tikimybių diapazoną abiem kryptimis: ir dideliam pelnui, ir dideliam nuostoliui.'}
+], quiz:[
+  {q:'Pagrindinis rizikos ir grąžos principas teigia, kad...', opts:['Rizika ir grąža nesusijusios','Didesnė galima grąža paprastai reikalauja didesnės rizikos','Mažesnė rizika visada duoda didesnę grąžą','Rizika egzistuoja tik akcijoms'], correct:1, ex:'Rizika ir potenciali grąža paprastai juda kartu.'},
+  {q:'Kas yra „rizikos premija“?', opts:['Mokestis už investavimo paslaugas','Papildoma grąža, kurios reikalaujama už rizikingesnio aktyvo laikymą','Bauda už ankstyvą pardavimą','Valstybės subsidija investuotojams'], correct:1, ex:'Rizikos premija — kompensacija už prisiimtą papildomą riziką.'},
+  {q:'Ar didesnė rizika garantuoja didesnę grąžą?', opts:['Taip, visada','Ne, ji tik padidina tikimybių diapazoną abiem kryptimis','Taip, bet tik akcijoms','Ne, rizika visada mažina grąžą'], correct:1, ex:'Didesnė rizika reiškia platesnį galimų rezultatų diapazoną, ne garantiją.'}
+]},
+{id:'t3', title:'Kas yra volatilumas?', theory:[
+  {h:'Apibrėžimas', p:'Volatilumas matuoja kainos svyravimo dydį per laiką — kiek stipriai ir dažnai aktyvo kaina keičiasi.'},
+  {h:'Aukštas vs žemas volatilumas', p:'Aukšto volatilumo aktyvai (pvz., maži technologijų startuoliai, kriptovaliutos) gali keistis dešimtimis procentų per dieną; žemo volatilumo aktyvai (valstybės obligacijos) keičiasi lėtai ir nuosekliai.'},
+  {h:'Volatilumas praktikoje', p:'Nors volatilumas nėra tiksliai tas pats kas rizika, jis dažnai naudojamas kaip praktinis rizikos matas, nes kiekybiškai parodo kainos svyravimo mastą.'}
+], quiz:[
+  {q:'Ką matuoja volatilumas?', opts:['Įmonės metinį pelną','Kainos svyravimo dydį per laiką','Akcininkų skaičių','Dividendų dydį'], correct:1, ex:'Volatilumas rodo, kaip smarkiai kaina svyruoja.'},
+  {q:'Kuris aktyvas paprastai turi aukštesnį volatilumą?', opts:['Valstybės obligacija','Mažas technologijų startuolis','Banko indėlis','Pinigų rinkos fondas'], correct:1, ex:'Maži, greitai augantys startuoliai paprastai svyruoja stipriau nei stabilios obligacijos.'},
+  {q:'Kodėl volatilumas praktikoje dažnai naudojamas kaip rizikos matas?', opts:['Nes jis visada lygus nuliui saugiems aktyvams','Nes jis kiekybiškai parodo, kaip smarkiai kaina gali svyruoti','Nes jis nustato mokesčių tarifą','Nes jį nustato vyriausybė'], correct:1, ex:'Volatilumas suteikia skaičiais išreiškiamą kainos svyravimo matą.'}
+]},
+{id:'t4', title:'Diversifikacija', theory:[
+  {h:'Pagrindinė idėja', p:'Diversifikacija reiškia investicijų paskirstymą tarp kelių skirtingų aktyvų, kad vieno aktyvo nesėkmė nesugriautų viso portfelio.'},
+  {h:'Klasikinis apibūdinimas', p:'„Nedėkite visų kiaušinių į vieną krepšelį“ — populiarus posakis, glaustai nusakantis diversifikacijos esmę.'},
+  {h:'Ką diversifikacija panaikina, o ko ne', p:'Diversifikacija efektyviai sumažina įmonės specifinę (nesisteminę) riziką, tačiau nepanaikina bendros rinkos rizikos, veikiančios visus aktyvus vienu metu.'}
+], quiz:[
+  {q:'Kas yra diversifikacija?', opts:['Investavimas tik į vieną geriausią akciją','Investicijų paskirstymas tarp kelių skirtingų aktyvų','Visų pinigų laikymas grynaisiais','Akcijų pirkimas tik per vieną dieną'], correct:1, ex:'Diversifikacija — paskirstymas tarp skirtingų aktyvų rizikai sumažinti.'},
+  {q:'Kokią riziką diversifikacija sumažina efektyviausiai?', opts:['Bendrą rinkos riziką','Įmonės specifinę (nesisteminę) riziką','Valiutos keitimo mokesčius','Infliaciją'], correct:1, ex:'Diversifikacija geriausiai veikia prieš su konkrečia įmone susijusią riziką.'},
+  {q:'Ar diversifikacija panaikina visą investavimo riziką?', opts:['Taip, visiškai','Ne, ji nepanaikina bendros rinkos (sisteminės) rizikos','Taip, bet tik akcijoms','Ne, ji tik padidina riziką'], correct:1, ex:'Net gerai diversifikuotas portfelis vis tiek jaučia bendrus rinkos svyravimus.'}
+]},
+{id:'t5', title:'Koreliacija tarp aktyvų', theory:[
+  {h:'Kas yra koreliacija', p:'Koreliacija parodo, kaip du aktyvai juda vienas kito atžvilgiu — kartu ta pačia kryptimi, priešingomis kryptimis, ar visiškai nepriklausomai.'},
+  {h:'Kodėl tai svarbu diversifikacijai', p:'Efektyviai diversifikuotam portfeliui reikia aktyvų, kurių koreliacija žema arba neigiama — jie nelinkę kilti ar kristi tuo pačiu metu.'},
+  {h:'Praktinis pavyzdys', p:'Jei visos jūsų akcijos priklauso tai pačiai pramonės šakai, jos gali turėti aukštą koreliaciją ir kartu smarkiai kristi tos šakos krizės metu — tokia „diversifikacija“ tik iš pažiūros veiksminga.'}
+], quiz:[
+  {q:'Ką parodo koreliacija tarp dviejų aktyvų?', opts:['Jų bendrą kainą','Kaip jie juda vienas kito atžvilgiu','Jų mokesčių tarifą','Jų prekybos valandas'], correct:1, ex:'Koreliacija matuoja dviejų aktyvų judėjimo ryšį.'},
+  {q:'Kokios koreliacijos aktyvai geriausiai tinka diversifikacijai?', opts:['Aukštos teigiamos koreliacijos','Žemos arba neigiamos koreliacijos','Tai neturi reikšmės','Tik identiškos koreliacijos'], correct:1, ex:'Žema ar neigiama koreliacija reiškia, kad aktyvai nekyla/nekrenta kartu.'},
+  {q:'Kodėl portfelis iš vienos pramonės šakos akcijų yra rizikingesnis nei atrodo?', opts:['Nes viena šaka visada praranda vertę','Nes tos akcijos dažnai turi aukštą koreliaciją ir gali kartu kristi','Nes vienos šakos akcijos brangesnės','Nes jose nėra dividendų'], correct:1, ex:'Ta pati pramonės šaka dažnai reaguoja panašiai į tuos pačius įvykius.'}
+]},
+{id:'t6', title:'Rizikos tolerancija ir laiko horizontas', theory:[
+  {h:'Rizikos tolerancija', p:'Rizikos tolerancija — kiek nuostolio investuotojas psichologiškai ir finansiškai gali pakelti, nepanikuodamas parduoti nepalankiu metu.'},
+  {h:'Laiko horizontas', p:'Laiko horizontas — kiek laiko liko iki tol, kol prireiks investuotų pinigų. Ilgesnis horizontas paprastai leidžia prisiimti daugiau rizikos, nes yra daugiau laiko atsigauti po galimų kritimų.'},
+  {h:'Šie du veiksniai kartu', p:'Rizikos tolerancija ir laiko horizontas kartu padeda nustatyti, kokia investavimo strategija konkrečiam žmogui tinkamiausia.'}
+], quiz:[
+  {q:'Kas yra rizikos tolerancija?', opts:['Mokestis už riziką','Kiek nuostolio investuotojas gali pakelti nepanikuodamas','Valstybės nustatytas rizikos limitas','Akcijos kainos svyravimo dydis'], correct:1, ex:'Rizikos tolerancija apibūdina asmeninę investuotojo ribą, kiek nuostolio jis gali pakelti ramiai.'},
+  {q:'Kaip laiko horizontas paprastai veikia galimą rizikos prisiėmimą?', opts:['Ilgesnis horizontas leidžia prisiimti daugiau rizikos','Ilgesnis horizontas visada reiškia mažiau rizikos','Horizontas neturi jokios įtakos rizikai','Trumpesnis horizontas visada leidžia daugiau rizikos'], correct:0, ex:'Kuo daugiau laiko iki pinigų prireikimo, tuo daugiau laiko atsigauti po nuosmukių.'},
+  {q:'Kodėl ilgas laiko horizontas sumažina rizikos poveikį investuotojui?', opts:['Nes kainos niekada nekrenta ilgame laikotarpyje','Nes yra daugiau laiko atsigauti po galimų kainų kritimų','Nes mokesčiai mažėja laikui bėgant','Nes ilgame laikotarpyje rizikos apskritai neegzistuoja'], correct:1, ex:'Ilgesnis laikotarpis suteikia daugiau galimybių portfeliui atsigauti po laikinų nuosmukių.'}
+]},
+{id:'t7', title:'Aktyvų paskirstymas', theory:[
+  {h:'Kas yra aktyvų paskirstymas', p:'Aktyvų paskirstymas (asset allocation) — tai, kaip investuotojas paskirsto savo kapitalą tarp skirtingų aktyvų klasių: akcijų, obligacijų, grynųjų ir kitų.'},
+  {h:'Kas veikia pasirinkimą', p:'Paskirstymas paprastai priklauso nuo rizikos tolerancijos ir laiko horizonto — jaunesni investuotojai su ilgu horizontu dažnai renkasi didesnę akcijų dalį, artėjantys prie tikslo — daugiau stabilesnių aktyvų.'},
+  {h:'Rebalansavimas', p:'Rebalansavimas — periodinis grąžinimas prie norimo aktyvų paskirstymo, kai rinkos pokyčiai natūraliai jį pakeičia laikui bėgant.'}
+], quiz:[
+  {q:'Kas yra aktyvų paskirstymas?', opts:['Vienos akcijos pirkimas didesniu kiekiu','Kaip kapitalas paskirstomas tarp skirtingų aktyvų klasių','Mokesčių deklaravimo būdas','Biržos prekybos valandos'], correct:1, ex:'Aktyvų paskirstymas apibūdina kapitalo pasiskirstymą tarp akcijų, obligacijų ir kitų klasių.'},
+  {q:'Kas paprastai veikia pasirinktą aktyvų paskirstymą?', opts:['Vien tik investuotojo amžius pagal įstatymą','Rizikos tolerancija ir laiko horizontas','Biržos darbo valandos','Nacionalinė valiuta'], correct:1, ex:'Šie du asmeniniai veiksniai yra pagrindiniai paskirstymo sprendimo kriterijai.'},
+  {q:'Kas yra rebalansavimas?', opts:['Visų investicijų pardavimas','Grąžinimas prie norimo aktyvų paskirstymo, kai rinkos pokyčiai jį pakeičia','Naujos maklerio sąskaitos atidarymas','Dividendų reinvestavimas automatiškai'], correct:1, ex:'Rebalansavimas atkuria pradinį norimą portfelio balansą.'}
+]}
+];
+
+const M2_CASE_STUDY = {
+  title:'Atvejo analizė: Trijų investuotojų portfeliai',
+  scenario:'Trys investuotojai: Jonas (25 m., investuoja pensijai, iki jos liko apie 40 metų), Rūta (55 m., planuoja išeiti į pensiją po 5 metų), ir Tomas (30 m., visus savo santaupas laiko vienoje itin nepastovioje kriptovaliutoje).',
+  questions:[
+    {q:'Kuris investuotojas, remiantis vien laiko horizontu, galėtų prisiimti daugiausia rizikos?', opts:['Rūta, nes ji vyriausia','Jonas, nes jo laiko horizontas ilgiausias','Tomas, nes jis jau prisiėmė daug rizikos','Visi trys vienodai'], correct:1, ex:'Ilgiausias laiko horizontas (Jonas) paprastai leidžia daugiausiai rizikos, nes yra daugiausia laiko atsigauti.'},
+    {q:'Kodėl Rūtai artėjant pensijai paprastai patariama mažinti rizikingesnę portfelio dalį?', opts:['Nes rizikingi aktyvai visada praranda vertę senstant','Nes trumpėjantis laiko horizontas palieka mažiau laiko atsigauti po galimo kritimo','Nes vyresniems investuotojams teisiškai draudžiama investuoti į akcijas','Nes dividendai tampa neįmanomi'], correct:1, ex:'Artėjant momentui, kai pinigų prireiks, mažiau laiko liko atsigauti po nuosmukio.'},
+    {q:'Kokia pagrindinė problema su Tomo strategija?', opts:['Jis investuoja per mažai','Jis neturi diversifikacijos — viskas sutelkta viename itin rizikingame aktyve','Jis per daug diversifikuotas','Jis investuoja tik į obligacijas'], correct:1, ex:'Visos santaupos viename itin nepastoviame aktyve reiškia labai didelę koncentracijos riziką.'},
+    {q:'Jei Tomas paskirstytų pinigus tarp 5 skirtingų, silpnai koreliuotų aktyvų klasių, tikėtina, kad jo portfelio bendra rizika...', opts:['Padidėtų','Sumažėtų dėl diversifikacijos efekto','Liktų lygiai tokia pati','Taptų lygi nuliui'], correct:1, ex:'Diversifikacija tarp silpnai koreliuotų aktyvų paprastai sumažina bendrą portfelio riziką.'}
+  ]
+};
+
+const M2_ALLOC_ASSETS = [
+  {name:'Saugus Bankas', risk:'Maža rizika', vol:0.02},
+  {name:'Maisto Grandinė', risk:'Labai maža rizika', vol:0.015},
+  {name:'EcoEnergija', risk:'Vidutinė rizika', vol:0.06},
+  {name:'TechRitmas', risk:'Didelė rizika', vol:0.09},
+  {name:'KriptoImpulsas', risk:'Ekstremali rizika', vol:0.19}
+];
+
+/* ============ MODULE CONTENT REGISTRY ============ */
+
+const MODULE_CONTENT = {
+  m1: { topics: M1_TOPICS, caseStudy: M1_CASE_STUDY, practice: {type:'news', items: M1_NEWS_PRACTICE, label:'Praktika: naujienų analizė'} },
+  m2: { topics: M2_TOPICS, caseStudy: M2_CASE_STUDY, practice: {type:'allocation', assets: M2_ALLOC_ASSETS, label:'Praktika: portfelio paskirstymas'} }
+};
+
+/* ============ STATE ============ */
+
+let progress = {};
+BUILT_CHAIN.forEach(id => {
+  progress[id] = { topics:{}, caseStudy:{done:false,score:0}, practice:{done:false} };
+  MODULE_CONTENT[id].topics.forEach(t => progress[id].topics[t.id] = {theoryRead:false, bestScore:null, attempts:0});
+});
+
+let view = {name:'syllabus', moduleId:null, topicId:null};
+let timerInterval = null;
+
+async function saveProgress(){
+  try{ localStorage.setItem('academy_progress_v2', JSON.stringify(progress)); }catch(e){}
+  if(fbEnabled && fbDb && fbUser){
+    setSyncStatus('syncing');
+    try{
+      await fbDb.collection('academy_progress').doc(fbUser.uid).set(progress);
+      setSyncStatus('synced');
+    }catch(e){
+      console.error('Firebase save failed, progress stays saved locally:', e);
+      setSyncStatus('offline');
+    }
+  }
+}
+async function loadProgress(){
+  try{
+    const local = localStorage.getItem('academy_progress_v2');
+    if(local) applySavedProgress(JSON.parse(local));
+  }catch(e){}
+  if(fbEnabled && fbDb && fbUser){
+    try{
+      const doc = await fbDb.collection('academy_progress').doc(fbUser.uid).get();
+      if(doc.exists){
+        applySavedProgress(doc.data());
+        localStorage.setItem('academy_progress_v2', JSON.stringify(progress));
+      }
+      setSyncStatus('synced');
+    }catch(e){
+      console.error('Firebase load failed, using local data:', e);
+      setSyncStatus('offline');
+    }
+  }
+}
+function applySavedProgress(saved){
+  if(!saved) return;
+  BUILT_CHAIN.forEach(id => {
+    if(saved[id]){
+      Object.keys(progress[id].topics).forEach(k => { if(saved[id].topics && saved[id].topics[k]) progress[id].topics[k] = saved[id].topics[k]; });
+      if(saved[id].caseStudy) progress[id].caseStudy = saved[id].caseStudy;
+      if(saved[id].practice) progress[id].practice = saved[id].practice;
+    }
+  });
+}
+
+function fmt(n){ return '€' + n.toLocaleString('lt-LT',{maximumFractionDigits:0}); }
+
+function topicsAvg(moduleId){
+  const topics = MODULE_CONTENT[moduleId].topics;
+  const scores = topics.map(t => progress[moduleId].topics[t.id].bestScore).filter(s => s !== null);
+  if(scores.length === 0) return 0;
+  return scores.reduce((a,b)=>a+b,0) / scores.length;
+}
+function allTopicsDone(moduleId){
+  return MODULE_CONTENT[moduleId].topics.every(t => progress[moduleId].topics[t.id].bestScore !== null);
+}
+function moduleStipendija(moduleId){
+  const avg = topicsAvg(moduleId);
+  const caseScore = progress[moduleId].caseStudy.score || 0;
+  const combined = progress[moduleId].caseStudy.done ? (avg*0.7 + caseScore*0.3) : avg;
+  return Math.round(5000 + (combined/100)*5000);
+}
+function moduleFullyDone(moduleId){
+  return allTopicsDone(moduleId) && progress[moduleId].caseStudy.done && progress[moduleId].practice.done;
+}
+function isModuleUnlocked(moduleId){
+  const idx = BUILT_CHAIN.indexOf(moduleId);
+  if(idx <= 0) return true;
+  return moduleFullyDone(BUILT_CHAIN[idx-1]);
+}
+function overallStipendija(){
+  const doneVals = BUILT_CHAIN.filter(id => moduleFullyDone(id)).map(id => moduleStipendija(id));
+  if(doneVals.length) return Math.round(doneVals.reduce((a,b)=>a+b,0)/doneVals.length);
+  const activeId = BUILT_CHAIN.find(id => isModuleUnlocked(id) && !moduleFullyDone(id));
+  if(activeId) return Math.round(5000 + (topicsAvg(activeId)/100)*5000*0.5);
+  return 5000;
+}
+
+function renderHeader(){
+  document.getElementById('stipChip').textContent = fmt(overallStipendija()) + ' stipendija';
+}
+
+document.getElementById('homeLink').addEventListener('click', () => { view = {name:'syllabus'}; render(); });
+document.getElementById('navTranscript').addEventListener('click', () => { view = {name:'transcript'}; render(); });
+
+function render(){
+  clearInterval(timerInterval);
+  renderHeader();
+  const main = document.getElementById('main');
+  if(view.name === 'syllabus') renderSyllabus(main);
+  else if(view.name === 'module') renderModule(main);
+  else if(view.name === 'topic') renderTopic(main);
+  else if(view.name === 'casestudy') renderCaseStudy(main);
+  else if(view.name === 'practice') renderPractice(main);
+  else if(view.name === 'transcript') renderTranscript(main);
+  else if(view.name === 'certificate') renderCertificate(main);
+}
+
+/* ============ SYLLABUS ============ */
+
+function renderSyllabus(main){
+  let html = `<div class="page-title">Silabusas</div><div class="page-sub">Visas kurso planas. Kiekvienas modulis atrakinamas užbaigus ankstesnį.</div>`;
+  PLANNED_MODULES.forEach((m, mIdx) => {
+    let statusHtml, barHtml = '';
+    if(m.built){
+      const unlocked = isModuleUnlocked(m.id);
+      const done = moduleFullyDone(m.id);
+      const topics = MODULE_CONTENT[m.id].topics;
+      const topicsDone = topics.filter(t => progress[m.id].topics[t.id].bestScore !== null).length;
+      const pct = Math.round((topicsDone / topics.length) * 100);
+      statusHtml = done ? '<span class="tag tag-done">✓ Baigta</span>' : (unlocked ? '<span class="tag tag-open">Galima pradėti</span>' : '<span class="tag tag-locked">🔒 Užrakinta</span>');
+      barHtml = `<div class="mini-bar-track"><div class="mini-bar-fill" style="width:${pct}%"></div></div><span>${topicsDone}/${topics.length} temų</span>`;
+    } else {
+      statusHtml = '<span class="tag tag-locked">🔧 Ruošiama</span>';
+    }
+    html += `<div class="module-row ${m.built && isModuleUnlocked(m.id) ? '' : 'locked'}" data-id="${m.id}">
+      <div class="module-badge-icon">${m.icon}</div>
+      <div style="flex:1">
+        <h3>${mIdx+1}. ${m.title}</h3>
+        <p>${m.subtitle}</p>
+        <div class="module-meta">${statusHtml}${barHtml}</div>
+      </div>
+    </div>`;
+  });
+  main.innerHTML = html;
+  main.querySelectorAll('.module-row:not(.locked)').forEach(row => {
+    row.addEventListener('click', () => {
+      const id = row.dataset.id;
+      if(!MODULE_CONTENT[id]) return;
+      view = {name:'module', moduleId:id}; render();
+    });
+  });
+}
+
+/* ============ MODULE VIEW (topic list) ============ */
+
+function renderModule(main){
+  const m = PLANNED_MODULES.find(x => x.id === view.moduleId);
+  const content = MODULE_CONTENT[view.moduleId];
+  const p = progress[view.moduleId];
+  let html = `<div class="back-link" id="backBtn">← Silabusas</div>
+    <div class="page-title">${m.icon} ${m.title}</div>
+    <div class="page-sub">${m.subtitle}</div>
+    <div class="topic-list">`;
+
+  content.topics.forEach((t,i) => {
+    const tp = p.topics[t.id];
+    const icon = tp.bestScore !== null ? '✅' : (tp.theoryRead ? '📖' : '⚪');
+    const scoreTxt = tp.bestScore !== null ? `<span class="topic-score">${tp.bestScore}%</span>` : '';
+    html += `<div class="topic-row" data-tid="${t.id}">
+      <span class="topic-num">${i+1}.</span>
+      <span class="topic-status-icon">${icon}</span>
+      <span class="t-title">${t.title}</span>
+      ${scoreTxt}
+    </div>`;
+  });
+
+  const allDone = allTopicsDone(view.moduleId);
+  const caseIcon = p.caseStudy.done ? '✅' : '⚪';
+  html += `<div class="topic-row capstone-row ${allDone?'':'disabled'}" id="caseRow">
+    <span class="topic-num">📌</span><span class="topic-status-icon">${caseIcon}</span>
+    <span class="t-title"><b>Atvejo analizė</b> — kaupiamasis scenarijus</span>
+    ${p.caseStudy.done ? `<span class="topic-score">${p.caseStudy.score}%</span>` : ''}
+  </div>`;
+
+  const practiceUnlocked = allDone && p.caseStudy.done;
+  const practIcon = p.practice.done ? '✅' : '⚪';
+  html += `<div class="topic-row practice-row ${practiceUnlocked?'':'disabled'}" id="practiceRow">
+    <span class="topic-num">🎯</span><span class="topic-status-icon">${practIcon}</span>
+    <span class="t-title"><b>${content.practice.label}</b> (kapitalas: ${fmt(moduleStipendija(view.moduleId))})</span>
+  </div>`;
+
+  html += `</div>`;
+  main.innerHTML = html;
+
+  document.getElementById('backBtn').addEventListener('click', () => { view={name:'syllabus'}; render(); });
+  main.querySelectorAll('.topic-row[data-tid]').forEach(row => {
+    row.addEventListener('click', () => { view = {name:'topic', moduleId:view.moduleId, topicId:row.dataset.tid}; render(); });
+  });
+  const caseRow = document.getElementById('caseRow');
+  if(allDone) caseRow.addEventListener('click', () => { view = {name:'casestudy', moduleId:view.moduleId}; render(); });
+  const practRow = document.getElementById('practiceRow');
+  if(practiceUnlocked) practRow.addEventListener('click', () => { view = {name:'practice', moduleId:view.moduleId}; render(); });
+}
+
+/* ============ TOPIC: THEORY + QUIZ ============ */
+
+function renderTopic(main){
+  const moduleId = view.moduleId;
+  const content = MODULE_CONTENT[moduleId];
+  const t = content.topics.find(x => x.id === view.topicId);
+  const tp = progress[moduleId].topics[t.id];
+  let stage = tp.theoryRead ? 'quiz' : 'theory';
+
+  function drawTheory(){
+    const totalChars = t.theory.reduce((s,sec) => s + sec.p.length, 0);
+    const requiredSec = Math.min(60, Math.max(25, Math.round(totalChars / 14)));
+    let elapsed = 0;
+
+    let html = `<div class="back-link" id="backBtn">← Atgal į modulį</div><div class="content-panel">`;
+    t.theory.forEach(sec => { html += `<div class="theory-section"><h3>${sec.h}</h3><p>${sec.p}</p></div>`; });
+    if(t.optional){
+      html += `<details class="optional-box"><summary>💡 ${t.optional.h} (neprivaloma)</summary><p>${t.optional.p}</p></details>`;
+    }
+    html += `<div class="timer-wrap">
+        <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+        <div class="timer-label" id="timerLabel">Skaitykite ramiai... liko ${requiredSec}s</div>
+      </div>
+      <button class="continue-btn" id="theoryContinueBtn" disabled>Tęsti į testą →</button>
+    </div>`;
+    main.innerHTML = html;
+    document.getElementById('backBtn').addEventListener('click', () => { view={name:'module', moduleId}; render(); });
+
+    timerInterval = setInterval(() => {
+      elapsed++;
+      const pct = Math.min(100, Math.round((elapsed/requiredSec)*100));
+      const fillEl = document.getElementById('timerFill');
+      const labelEl = document.getElementById('timerLabel');
+      if(fillEl) fillEl.style.width = pct + '%';
+      if(elapsed >= requiredSec){
+        clearInterval(timerInterval);
+        if(labelEl) labelEl.textContent = 'Perskaityta ✓ Galite tęsti.';
+        const btn = document.getElementById('theoryContinueBtn');
+        if(btn) btn.disabled = false;
+      } else if(labelEl){
+        labelEl.textContent = `Skaitykite ramiai... liko ${requiredSec-elapsed}s`;
+      }
+    }, 1000);
+
+    document.getElementById('theoryContinueBtn').addEventListener('click', () => {
+      tp.theoryRead = true;
+      saveProgress();
+      clearInterval(timerInterval);
+      stage = 'quiz';
+      drawQuiz();
+    });
+  }
+
+  function drawQuiz(){
+    let selections = new Array(t.quiz.length).fill(null);
+    let submitted = false;
+
+    function draw(){
+      let html = `<div class="back-link" id="backBtn2">← Atgal į modulį</div><div class="content-panel">`;
+      t.quiz.forEach((q, qi) => {
+        html += `<div class="quiz-q"><p class="qtext">${qi+1}. ${q.q}</p>`;
+        q.opts.forEach((opt, oi) => {
+          let cls = 'qopt';
+          if(selections[qi] === oi) cls += ' selected';
+          if(submitted){
+            if(oi === q.correct) cls += ' correct';
+            else if(selections[qi] === oi) cls += ' incorrect';
+          }
+          html += `<button class="${cls}" data-qi="${qi}" data-oi="${oi}" ${submitted?'disabled':''}>${opt}</button>`;
+        });
+        if(submitted) html += `<div class="explain">${q.ex}</div>`;
+        html += `</div>`;
+      });
+      if(!submitted){
+        const allAnswered = selections.every(s => s !== null);
+        html += `<button class="submit-btn" id="quizSubmitBtn" ${allAnswered?'':'disabled'}>Pateikti atsakymus</button>`;
+      } else {
+        const correctCount = selections.filter((s,i) => s === t.quiz[i].correct).length;
+        const scorePct = Math.round((correctCount/t.quiz.length)*100);
+        tp.attempts++;
+        if(tp.bestScore === null || scorePct > tp.bestScore) tp.bestScore = scorePct;
+        saveProgress();
+        html += `<div class="quiz-result">
+          <div style="color:var(--muted);font-size:13px;">Rezultatas</div>
+          <div class="score" style="color:${scorePct>=70?'var(--gain)':'var(--loss)'}">${correctCount}/${t.quiz.length} (${scorePct}%)</div>
+          <div style="color:var(--muted);font-size:13px;margin-bottom:14px;">Geriausias rezultatas šiai temai: ${tp.bestScore}%</div>
+          <button class="submit-btn" id="retryBtn">Bandyti dar kartą</button>
+          <button class="continue-btn" id="doneBtn" style="margin-left:8px;">Grįžti į modulį</button>
+        </div>`;
+      }
+      html += `</div>`;
+      main.innerHTML = html;
+      document.getElementById('backBtn2').addEventListener('click', () => { view={name:'module', moduleId}; render(); });
+
+      if(!submitted){
+        main.querySelectorAll('.qopt').forEach(btn => {
+          btn.addEventListener('click', () => { selections[parseInt(btn.dataset.qi)] = parseInt(btn.dataset.oi); draw(); });
+        });
+        const sb = document.getElementById('quizSubmitBtn');
+        if(sb) sb.addEventListener('click', () => { submitted = true; draw(); });
+      } else {
+        document.getElementById('retryBtn').addEventListener('click', () => { selections = new Array(t.quiz.length).fill(null); submitted=false; draw(); });
+        document.getElementById('doneBtn').addEventListener('click', () => { view={name:'module', moduleId}; render(); });
+      }
+    }
+    draw();
+  }
+
+  if(stage === 'theory') drawTheory(); else drawQuiz();
+}
+
+/* ============ CASE STUDY ============ */
+
+function renderCaseStudy(main){
+  const moduleId = view.moduleId;
+  const cs = MODULE_CONTENT[moduleId].caseStudy;
+  let selections = new Array(cs.questions.length).fill(null);
+  let submitted = false;
+
+  function draw(){
+    let html = `<div class="back-link" id="backBtn">← Atgal į modulį</div><div class="page-title">📌 ${cs.title}</div>
+      <div class="content-panel"><p style="font-size:14px;line-height:1.7;color:#D8D5C9;margin-bottom:18px;">${cs.scenario}</p>`;
+    cs.questions.forEach((q, qi) => {
+      html += `<div class="quiz-q"><p class="qtext">${qi+1}. ${q.q}</p>`;
+      q.opts.forEach((opt, oi) => {
+        let cls = 'qopt';
+        if(selections[qi] === oi) cls += ' selected';
+        if(submitted){
+          if(oi === q.correct) cls += ' correct';
+          else if(selections[qi] === oi) cls += ' incorrect';
+        }
+        html += `<button class="${cls}" data-qi="${qi}" data-oi="${oi}" ${submitted?'disabled':''}>${opt}</button>`;
+      });
+      if(submitted) html += `<div class="explain">${q.ex}</div>`;
+      html += `</div>`;
+    });
+    if(!submitted){
+      const allAnswered = selections.every(s => s!==null);
+      html += `<button class="submit-btn" id="csSubmitBtn" ${allAnswered?'':'disabled'}>Pateikti</button>`;
+    } else {
+      const correctCount = selections.filter((s,i)=>s===cs.questions[i].correct).length;
+      const scorePct = Math.round((correctCount/cs.questions.length)*100);
+      progress[moduleId].caseStudy = {done:true, score: Math.max(scorePct, progress[moduleId].caseStudy.score||0)};
+      saveProgress();
+      html += `<div class="quiz-result">
+        <div class="score" style="color:${scorePct>=70?'var(--gain)':'var(--loss)'}">${correctCount}/${cs.questions.length} (${scorePct}%)</div>
+        <div style="color:var(--muted);font-size:13px;margin-bottom:14px;">Atvejo analizė įskaityta. Stipendija atnaujinta pagal geriausią rezultatą.</div>
+        <button class="continue-btn" id="doneBtn">Grįžti į modulį</button>
+      </div>`;
+    }
+    html += `</div>`;
+    main.innerHTML = html;
+    document.getElementById('backBtn').addEventListener('click', () => { view={name:'module', moduleId}; render(); });
+    if(!submitted){
+      main.querySelectorAll('.qopt').forEach(btn => {
+        btn.addEventListener('click', () => { selections[parseInt(btn.dataset.qi)]=parseInt(btn.dataset.oi); draw(); });
+      });
+      const sb = document.getElementById('csSubmitBtn');
+      if(sb) sb.addEventListener('click', () => { submitted=true; draw(); });
+    } else {
+      document.getElementById('doneBtn').addEventListener('click', () => { view={name:'module', moduleId}; render(); });
+    }
+  }
+  draw();
+}
+
+/* ============ PRACTICE (dispatches by type) ============ */
+
+function renderPractice(main){
+  const moduleId = view.moduleId;
+  const practice = MODULE_CONTENT[moduleId].practice;
+  if(practice.type === 'news') renderPracticeNews(main, moduleId, practice);
+  else if(practice.type === 'allocation') renderPracticeAllocation(main, moduleId, practice);
+}
+
+function renderPracticeNews(main, moduleId, practice){
+  const capital = moduleStipendija(moduleId);
+  let answers = new Array(practice.items.length).fill(null);
+  function draw(){
+    let html = `<div class="back-link" id="backBtn">← Atgal į modulį</div><div class="page-title">🎯 ${practice.label}</div>
+      <div class="page-sub">Jūsų stipendija šiai praktikai: <b style="color:var(--gold)">${fmt(capital)}</b> (priklauso nuo testų rezultatų)</div>
+      <div class="content-panel">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Perskaitykite kiekvieną naujieną ir nuspėkite, kaip pasikeis akcijos kaina.</p>`;
+    practice.items.forEach((n,i) => {
+      html += `<div class="practice-item"><p class="headline">${n.text}</p>
+        <div class="choice-row">
+          <button class="choice-btn" data-i="${i}" data-v="up" ${answers[i]?'disabled':''}>📈 Kils</button>
+          <button class="choice-btn" data-i="${i}" data-v="down" ${answers[i]?'disabled':''}>📉 Kris</button>
+        </div>`;
+      if(answers[i]){
+        const correct = answers[i]===n.answer;
+        html += `<div class="explain" style="margin-top:8px;color:${correct?'var(--gain)':'var(--loss)'}">${correct?'✓ Teisingai. ':'✗ Netiksliai. '}${n.why}</div>`;
+      }
+      html += `</div>`;
+    });
+    const allDone = answers.every(a=>a!==null);
+    if(allDone){
+      const correctCount = answers.filter((a,i)=>a===practice.items[i].answer).length;
+      html += `<div class="feedback-box">Rezultatas: ${correctCount}/${practice.items.length} teisingai su ${fmt(capital)} virtualiu kapitalu.</div>
+      <button class="continue-btn" id="finishBtn">Baigti modulį →</button>`;
+    }
+    html += `</div>`;
+    main.innerHTML = html;
+    document.getElementById('backBtn').addEventListener('click', () => { view={name:'module', moduleId}; render(); });
+    main.querySelectorAll('.choice-btn:not([disabled])').forEach(btn => {
+      btn.addEventListener('click', () => { answers[parseInt(btn.dataset.i)] = btn.dataset.v; draw(); });
+    });
+    const fb = document.getElementById('finishBtn');
+    if(fb) fb.addEventListener('click', () => {
+      progress[moduleId].practice.done = true;
+      saveProgress();
+      view = {name:'certificate', moduleId};
+      render();
+    });
+  }
+  draw();
+}
+
+function renderPracticeAllocation(main, moduleId, practice){
+  const capital = moduleStipendija(moduleId);
+  const assets = practice.assets;
+  function draw(){
+    let html = `<div class="back-link" id="backBtn">← Atgal į modulį</div><div class="page-title">🎯 ${practice.label}</div>
+      <div class="page-sub">Turimas kapitalas: <b style="color:var(--gold)">${fmt(capital)}</b> — paskirstykite procentais tarp 5 aktyvų.</div>
+      <div class="content-panel">`;
+    assets.forEach((a,i) => {
+      html += `<div class="alloc-row"><div><div class="alloc-name">${a.name}</div><div class="alloc-risk">${a.risk}</div></div>
+        <div><input type="number" min="0" max="100" class="alloc-input" id="alloc-${i}" value="0">%</div></div>`;
+    });
+    html += `<div class="alloc-total" id="allocTotal">Iš viso: 0%</div><button class="submit-btn" id="allocSubmitBtn">Pateikti</button><div id="allocFeedback"></div></div>`;
+    main.innerHTML = html;
+    document.getElementById('backBtn').addEventListener('click', () => { view={name:'module', moduleId}; render(); });
+
+    function updateTotal(){ let t=0; assets.forEach((a,i)=>t+=parseInt(document.getElementById('alloc-'+i).value)||0); document.getElementById('allocTotal').textContent='Iš viso: '+t+'%'; return t; }
+    assets.forEach((a,i)=>document.getElementById('alloc-'+i).addEventListener('input', updateTotal));
+
+    document.getElementById('allocSubmitBtn').addEventListener('click', () => {
+      const total = updateTotal();
+      if(total !== 100){ document.getElementById('allocFeedback').innerHTML = `<div class="feedback-box" style="border-color:var(--loss);">Procentai turi susumuoti lygiai į 100%. Šiuo metu: ${total}%.</div>`; return; }
+      const allocs = assets.map((a,i)=>parseInt(document.getElementById('alloc-'+i).value)||0);
+      const maxAlloc = Math.max(...allocs);
+      const numUsed = allocs.filter(v=>v>0).length;
+      const weightedVol = allocs.reduce((s,v,i)=>s+(v/100)*assets[i].vol,0);
+      let verdict;
+      if(maxAlloc>60) verdict = 'Portfelis stipriai sutelktas viename aktyve — tai padidina riziką prarasti didelę dalį, jei tas aktyvas nuvertėtų.';
+      else if(numUsed<=2) verdict = 'Naudojate mažai skirtingų aktyvų — diversifikacija galėtų būti platesnė.';
+      else if(maxAlloc<=40 && numUsed>=4) verdict = 'Gerai diversifikuotas portfelis — rizika paskirstyta tarp kelių skirtingo rizikos lygio aktyvų.';
+      else verdict = 'Vidutiniškai diversifikuotas portfelis — neblogas balansas, bet galėtumėte paskirstyti dar tolygiau.';
+      document.getElementById('allocFeedback').innerHTML = `<div class="feedback-box"><b>Įvertintas portfelio volatilumas:</b> ${(weightedVol*100).toFixed(1)}%<br><b>Didžiausia koncentracija viename aktyve:</b> ${maxAlloc}%<br><br>${verdict}</div>
+        <button class="continue-btn" id="finishBtn">Baigti modulį →</button>`;
+      document.getElementById('finishBtn').addEventListener('click', () => {
+        progress[moduleId].practice.done = true;
+        saveProgress();
+        view = {name:'certificate', moduleId};
+        render();
+      });
+    });
+  }
+  draw();
+}
+
+/* ============ TRANSCRIPT ============ */
+
+function renderTranscript(main){
+  let html = `<div class="page-title">Pažymių knygelė</div><div class="page-sub">Visi jūsų rezultatai vienoje vietoje.</div>
+    <table class="transcript"><thead><tr><th>Modulis / Tema</th><th>Rezultatas</th></tr></thead><tbody>`;
+  const badges = [];
+  PLANNED_MODULES.forEach(m => {
+    if(!m.built){
+      html += `<tr><td colspan="2" style="color:var(--muted);font-weight:600;padding-top:14px;">${m.title} — ruošiama</td></tr>`;
+      return;
+    }
+    html += `<tr><td colspan="2" style="color:var(--gold);font-weight:600;padding-top:14px;">${m.title}</td></tr>`;
+    MODULE_CONTENT[m.id].topics.forEach(t => {
+      const tp = progress[m.id].topics[t.id];
+      html += `<tr><td>${t.title}</td><td class="score-cell">${tp.bestScore !== null ? tp.bestScore+'%' : '—'}</td></tr>`;
+    });
+    html += `<tr><td>Atvejo analizė</td><td class="score-cell">${progress[m.id].caseStudy.done ? progress[m.id].caseStudy.score+'%' : '—'}</td></tr>`;
+    html += `<tr><td>Praktika</td><td class="score-cell">${progress[m.id].practice.done ? 'Baigta' : '—'}</td></tr>`;
+    html += `<tr><td><b>Modulio vidurkis</b></td><td class="score-cell"><b>${Math.round(topicsAvg(m.id))}%</b></td></tr>`;
+    if(moduleFullyDone(m.id)) badges.push({icon:'🏅', name:m.badgeName});
+    if(topicsAvg(m.id) === 100 && allTopicsDone(m.id)) badges.push({icon:'🌟', name:'Tobulas mokinys („'+m.title+'“)'});
+  });
+  html += `</tbody></table>`;
+  html += `<div class="badge-row">${badges.length ? badges.map(b=>`<div class="badge-chip">${b.icon} ${b.name}</div>`).join('') : '<span style="color:var(--muted);font-size:12.5px;">Kol kas ženklelių nėra — baikite modulį, kad juos gautumėte.</span>'}</div>`;
+  main.innerHTML = html;
+}
+
+/* ============ CERTIFICATE ============ */
+
+function renderCertificate(main){
+  const moduleId = view.moduleId;
+  const m = PLANNED_MODULES.find(x => x.id === moduleId);
+  main.innerHTML = `
+    <div class="certificate" id="certWrap">
+      <h2>🎓 Sveikiname!</h2>
+      <div class="cert-box">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;">INVESTAVIMO AKADEMIJA</div>
+        <div class="cname">${m.title}</div>
+        <div style="color:var(--muted);font-size:13px;">Sėkmingai užbaigta su ${Math.round(topicsAvg(moduleId))}% vidutiniu rezultatu</div>
+        <div style="margin-top:14px;font-size:12.5px;color:var(--gold);">${m.icon} Ženklelis: ${m.badgeName}</div>
+      </div>
+      <button class="continue-btn" id="backHomeBtn">Grįžti į silabusą</button>
+    </div>`;
+  document.getElementById('backHomeBtn').addEventListener('click', () => { view={name:'syllabus'}; render(); });
+
+  const colors = ['#D9A441','#3FA796','#C1553B','#EDEAE0'];
+  const wrap = document.getElementById('certWrap');
+  for(let i=0;i<60;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti';
+    el.style.left = Math.random()*100 + '%';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDuration = (2 + Math.random()*2) + 's';
+    el.style.animationDelay = (Math.random()*0.8) + 's';
+    wrap.appendChild(el);
+  }
+}
+
+(async function(){
+  await initFirebase();
+  await loadProgress();
+  render();
+})();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.error('SW registracija nepavyko:', e));
+  });
+}
+</script>
+</body>
+</html>
