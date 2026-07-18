@@ -17,13 +17,14 @@
     --gain:#3FA796; --loss:#C1553B; --gold:#D9A441; --border:#232B36; --locked:#2b3038;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;overflow-x:hidden;}
-  #app{max-width:980px;margin:0 auto;padding:0 20px 60px;overflow-x:hidden;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;overflow:hidden;height:100%;height:100dvh;}
+  #app{max-width:980px;margin:0 auto;height:100%;height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
+  #main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 20px 40px;}
   h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
   .hidden{display:none !important;}
   a{color:var(--gold);}
 
-  header.top{padding:22px 0 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:0;background:var(--bg);z-index:10;}
+  header.top{padding:22px 20px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:var(--bg);z-index:10;flex-shrink:0;}
   header.top h1{font-size:22px;font-weight:700;letter-spacing:.4px;cursor:pointer;}
   header.top h1 span{color:var(--gold);}
   .nav-right{display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);}
@@ -241,7 +242,8 @@ const PLANNED_MODULES = [
   {id:'m5', built:true, title:'Techniniai indikatoriai', subtitle:'SMA, RSI, MACD ir kiti įrankiai', icon:'🧭', badgeName:'Indikatorių Analitikas'},
   {id:'m6', built:true, title:'Investavimo strategijos', subtitle:'Value, growth, indeksinis investavimas, DCA vs vienkartinė, day trading realybė', icon:'🧩', badgeName:'Strategas'},
   {id:'m7', built:true, title:'Investuotojo psichologija', subtitle:'Emocijos, klaidos ir disciplina', icon:'🧠', badgeName:'Emocijų Valdovas'},
-  {id:'m8', built:true, title:'Baigiamasis prekybos simuliatorius', subtitle:'Viską sujungianti praktika', icon:'🏁', badgeName:'Investavimo Akademijos Absolventas'}
+  {id:'m8', built:true, title:'Baigiamasis prekybos simuliatorius', subtitle:'Viską sujungianti praktika', icon:'🏁', badgeName:'Investavimo Akademijos Absolventas'},
+  {id:'m9', built:true, title:'Kriptovaliutos', subtitle:'Kas tai, kokia paskirtis, kaip skaityti projekto dokumentus', icon:'₿', badgeName:'Kriptovaliutų Analitikas'}
 ];
 const BUILT_CHAIN = PLANNED_MODULES.filter(m => m.built).map(m => m.id);
 const PASS_THRESHOLD = { browse:0.5, learn:0.7 };
@@ -284,7 +286,8 @@ function sampleQuestions(bank, mode){
     const remaining = bank.filter(q => !selected.includes(q));
     selected = selected.concat(pickN(remaining, target - selected.length));
   }
-  selected = shuffleArray(selected);
+  const diffRank = {lengvas:0, vidutinis:1, sunkus:2};
+  selected.sort((a,b) => diffRank[a.diff] - diffRank[b.diff]);
   return selected.map(shuffleOptions);
 }
 
@@ -294,7 +297,8 @@ const M1_TOPICS = [
 {id:'t1', title:'Kas yra akcija?', theory:[
   {h:'Nuosavybės dalis', p:'Akcija yra maža įmonės nuosavybės dalis. Nusipirkę akciją, tampate vienu iš daugelio įmonės savininkų (akcininku) ir įgyjate teisę į proporcingą dalį jos turto bei pelno.'},
   {h:'Kodėl įmonės išleidžia akcijas?', p:'Įmonės parduoda akcijas, kad pritrauktų kapitalą augimui — naujiems projektams, plėtrai ar skoloms padengti — nesiimdamos banko paskolos ir jos palūkanų.'},
-  {h:'Akcininko teisės', p:'Akcininkas paprastai turi balsavimo teisę svarbiuose įmonės sprendimuose, teisę gauti dividendus, jei jie skelbiami, ir teisę į dalį turto, jei įmonė būtų likviduojama.'}
+  {h:'Akcininko teisės', p:'Akcininkas paprastai turi balsavimo teisę svarbiuose įmonės sprendimuose, teisę gauti dividendus, jei jie skelbiami, ir teisę į dalį turto, jei įmonė būtų likviduojama.'},
+  {h:'Praktinis pavyzdys', p:'Jei įmonė turi išleidusi 1 mln. akcijų, o jūs turite 10 000 iš jų, jūsų nuosavybės dalis yra 10 000 ÷ 1 000 000 = 1%. Bankroto atveju akcininkai atlyginami paskutiniai, po visų kreditorių (įskaitant obligacijų turėtojus) — tai svarbu vertinant riziką.'}
 ], quiz:[
   {diff:'lengvas', q:'Ką reiškia turėti įmonės akciją?', opts:['Paskolinote įmonei pinigų','Turite nuosavybės dalį įmonėje','Esate įmonės darbuotojas','Turite teisę į fiksuotą palūkanų mokėjimą'], correct:1, ex:'Akcija reiškia nuosavybės dalį — akcininkas yra vienas iš įmonės savininkų.'},
   {diff:'lengvas', q:'Kas gauna akcijos savininkas, jei įmonė paskelbia dividendus?', opts:['Dalį įmonės pelno','Nemokamą produktą','Papildomą atlyginimą','Mokesčių grąžinimą'], correct:0, ex:'Dividendai yra pelno dalis, mokama akcininkams.'},
@@ -309,7 +313,8 @@ const M1_TOPICS = [
 {id:'t2', title:'Kas yra obligacija?', theory:[
   {h:'Paskola, ne nuosavybė', p:'Pirkdami obligaciją, jūs iš esmės paskolinate pinigus įmonei ar valstybei. Jūs tampate kreditoriumi, o ne savininku, ir turite teisę atgauti pinigus su sutartomis palūkanomis.'},
   {h:'Kuponas ir terminas', p:'Obligacija turi nustatytą palūkanų normą (kuponą) ir grąžinimo terminą (išpirkimo datą), kada pagrindinė suma grąžinama investuotojui.'},
-  {h:'Obligacijos vs akcijos', p:'Obligacijos paprastai laikomos stabilesnėmis ir mažiau rizikingomis nei akcijos, tačiau jų potenciali grąža taip pat mažesnė.'}
+  {h:'Obligacijos vs akcijos', p:'Obligacijos paprastai laikomos stabilesnėmis ir mažiau rizikingomis nei akcijos, tačiau jų potenciali grąža taip pat mažesnė.'},
+  {h:'Praktinis pavyzdys', p:'Dvi obligacijos moka tą patį 5% kuponą, bet vienos emitento kredito reitingas žemas, kitos — aukštas. Žemesnis reitingas reiškia didesnę tikimybę, kad emitentas negalės grąžinti skolos, tad tokia obligacija rizikingesnė, nepaisant identiško kupono.'}
 ], quiz:[
   {diff:'lengvas', q:'Perkant obligaciją, investuotojas tampa...', opts:['Įmonės dalies savininku','Įmonės kreditoriumi (skolintoju)','Įmonės darbuotoju','Įmonės valdybos nariu'], correct:1, ex:'Obligacijos pirkėjas paskolina pinigus, todėl tampa kreditoriumi, ne savininku.'},
   {diff:'lengvas', q:'Kas yra obligacijos „kuponas“?', opts:['Nuolaidos kodas obligacijai pirkti','Nustatyta palūkanų norma, mokama investuotojui','Obligacijos pardavimo mokestis','Akcijos kainos pokytis'], correct:1, ex:'Kuponas — tai palūkanų norma, kurią emitentas moka obligacijos savininkui.'},
@@ -324,7 +329,8 @@ const M1_TOPICS = [
 {id:'t3', title:'Kaip veikia birža?', theory:[
   {h:'Prekybos vieta', p:'Birža yra sistema — šiandien dažniausiai elektroninė — kurioje susitinka pirkėjų ir pardavėjų užsakymai ir sudaromi sandoriai.'},
   {h:'Bid ir ask kainos', p:'Kiekvienu momentu egzistuoja „bid“ kaina (už kurią pirkėjai nori pirkti) ir „ask“ kaina (už kurią pardavėjai nori parduoti). Sandoris įvyksta, kai šios kainos susitinka.'},
-  {h:'Likvidumas', p:'Likvidumas parodo, kaip lengvai aktyvą galima nupirkti ar parduoti, žymiai nepakeičiant jo kainos. Populiarios akcijos paprastai yra likvidesnės nei retai prekiaujamos.'}
+  {h:'Likvidumas', p:'Likvidumas parodo, kaip lengvai aktyvą galima nupirkti ar parduoti, žymiai nepakeičiant jo kainos. Populiarios akcijos paprastai yra likvidesnės nei retai prekiaujamos.'},
+  {h:'Praktinis pavyzdys', p:'Populiari akcija gali turėti bid €49.98 ir ask €50.02 (siauras spread, aukštas likvidumas). Retai prekiaujama akcija gali turėti bid €48 ir ask €52 (platus spread) — parduodant iš karto tektų sutikti su gerokai mažesne kaina.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra „ask“ kaina?', opts:['Kaina, už kurią pardavėjai nori parduoti','Kaina, už kurią pirkėjai nori pirkti','Fiksuota valstybės nustatyta kaina','Vidutinė metinė kaina'], correct:0, ex:'„Ask“ yra minimali kaina, už kurią pardavėjas sutinka parduoti.'},
   {diff:'lengvas', q:'Kas yra „bid“ kaina?', opts:['Kaina, už kurią pardavėjai nori parduoti','Kaina, už kurią pirkėjai nori pirkti','Akcijos nominali vertė','Praėjusios dienos uždarymo kaina'], correct:1, ex:'„Bid“ yra kaina, kurią pirkėjai siūlo mokėti.'},
@@ -338,7 +344,8 @@ const M1_TOPICS = [
 ]},
 {id:'t4', title:'Pasiūla ir paklausa', theory:[
   {h:'Pagrindinis kainos variklis', p:'Kai daugiau žmonių nori pirkti akciją nei parduoti, kaina kyla. Kai atvirkščiai — daugiau norinčių parduoti — kaina krenta.'},
-  {h:'Kas veikia paklausą', p:'Paklausą didina geros naujienos, augimo lūkesčiai ar bendras optimizmas rinkoje; mažina — blogos naujienos, nusivylimas ar baimė.'}
+  {h:'Kas veikia paklausą', p:'Paklausą didina geros naujienos, augimo lūkesčiai ar bendras optimizmas rinkoje; mažina — blogos naujienos, nusivylimas ar baimė.'},
+  {h:'Praktinis pavyzdys', p:'Jei įmonės rezultatai blogesni nei praėjusiais metais, bet geresni nei analitikų prognozuota, rinka gali reaguoti teigiamai — nes lūkesčiai buvo dar žemesni. Kaina reaguoja į naujieną, palyginus su lūkesčiais, ne į pačią naujieną izoliuotai.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas nutinka kainai, kai pirkėjų žymiai daugiau nei pardavėjų?', opts:['Kaina paprastai kyla','Kaina paprastai krenta','Kaina nesikeičia','Prekyba automatiškai sustabdoma'], correct:0, ex:'Didesnė paklausa nei pasiūla kelia kainą.'},
   {diff:'lengvas', q:'Kas nutinka kainai, kai pardavėjų žymiai daugiau nei pirkėjų?', opts:['Kaina paprastai kyla','Kaina paprastai krenta','Kaina nesikeičia','Akcija pašalinama iš biržos'], correct:1, ex:'Didesnė pasiūla nei paklausa mažina kainą.'},
@@ -353,7 +360,8 @@ const M1_TOPICS = [
 {id:'t5', title:'Akcijos, obligacijos ir ETF', theory:[
   {h:'ETF — krepšelis viename pirkinyje', p:'ETF (biržoje prekiaujamas fondas) sudaro dešimtys ar šimtai skirtingų akcijų ar obligacijų, supakuotų į vieną vertybinį popierių, kuriuo prekiaujama kaip paprasta akcija.'},
   {h:'Kodėl tai patogu', p:'Nupirkę vieną ETF vienetą, iškart gaunate diversifikaciją tarp daugelio įmonių — nereikia pirkti kiekvienos atskirai.'},
-  {h:'Trumpas palyginimas', p:'Akcija = nuosavybė vienoje įmonėje. Obligacija = paskola vienam skolininkui. ETF = krepšelis daugelio aktyvų vienu pirkiniu.'}
+  {h:'Trumpas palyginimas', p:'Akcija = nuosavybė vienoje įmonėje. Obligacija = paskola vienam skolininkui. ETF = krepšelis daugelio aktyvų vienu pirkiniu.'},
+  {h:'Praktinis pavyzdys', p:'Norėdami investuoti į 500 didžiausių JAV įmonių, galėtumėte pirkti kiekvienos akcijas atskirai (brangu ir sudėtinga) arba nusipirkti vieną plataus rinkos ETF, sekantį tą patį indeksą, ir gauti tą pačią diversifikaciją vienu paprastu pirkimu.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra ETF?', opts:['Vienos konkrečios įmonės išleista akcija','Krepšelis kelių aktyvų, kuriuo prekiaujama kaip akcija','Valstybės išleistas skolos vertybinis popierius','Banko siūloma indėlio sąskaitos rūšis'], correct:1, ex:'ETF apjungia kelis aktyvus į vieną, biržoje prekiaujamą vertybinį popierių.'},
   {diff:'lengvas', q:'Kokį iš šių trijų geriausiai apibūdina žodžiai „paskola vienam skolininkui“?', opts:['Akcija','Obligacija','ETF','Nė vienas'], correct:1, ex:'Obligacija yra paskola konkrečiam skolininkui (įmonei ar valstybei).'},
@@ -368,7 +376,8 @@ const M1_TOPICS = [
 {id:'t6', title:'Dividendai', theory:[
   {h:'Kas yra dividendas', p:'Dividendas — tai dalis įmonės pelno, išmokama akcininkams, dažniausiai kas ketvirtį ar kartą per metus.'},
   {h:'Dividendų pajamingumas', p:'Dividendų pajamingumas (yield) parodo, kiek dividendų per metus gaunate palyginus su akcijos kaina — tai leidžia palyginti skirtingas įmones.'},
-  {h:'Ne visos įmonės moka dividendus', p:'Sparčiai augančios įmonės dažnai pelną investuoja atgal į verslą, o ne moka dividendus, tikėdamosis didesnio kainos augimo ateityje.'}
+  {h:'Ne visos įmonės moka dividendus', p:'Sparčiai augančios įmonės dažnai pelną investuoja atgal į verslą, o ne moka dividendus, tikėdamosis didesnio kainos augimo ateityje.'},
+  {h:'Praktinis pavyzdys', p:'Jei akcijos kaina €50, o metinis dividendas €2, dividendų pajamingumas = 2 ÷ 50 = 4%. Kita įmonė su €100 kaina ir tuo pačiu €2 dividendu turėtų tik 2% pajamingumą — tai leidžia palyginti įmones nepriklausomai nuo jų kainos.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra dividendas?', opts:['Mokestis, kurį akcininkas moka įmonei','Dalis įmonės pelno, išmokama akcininkams','Paskolos grąžinimas bankui','Akcijos pirkimo kaina'], correct:1, ex:'Dividendas yra pelno dalis, paskirstoma akcininkams.'},
   {diff:'lengvas', q:'Kaip dažnai įmonės dažniausiai moka dividendus?', opts:['Kasdien','Kas ketvirtį ar kartą per metus','Tik vieną kartą per visą įmonės gyvavimą','Kas valandą'], correct:1, ex:'Dividendai paprastai mokami periodiškai — kas ketvirtį ar kartą metuose.'},
@@ -383,7 +392,8 @@ const M1_TOPICS = [
 {id:'t7', title:'Rinkos dalyviai', theory:[
   {h:'Mažmeniniai investuotojai', p:'Tai pavieniai žmonės, investuojantys savo asmeninius pinigus per brokerio sąskaitas.'},
   {h:'Instituciniai investuotojai', p:'Tai didelės organizacijos — pensijų fondai, investiciniai fondai, draudimo bendrovės — valdančios didelius kapitalo kiekius.'},
-  {h:'Rinkos formuotojai', p:'Rinkos formuotojai (market makers) nuolat siūlo pirkti ir parduoti tam tikrus vertybinius popierius, taip palaikydami rinkos likvidumą.'}
+  {h:'Rinkos formuotojai', p:'Rinkos formuotojai (market makers) nuolat siūlo pirkti ir parduoti tam tikrus vertybinius popierius, taip palaikydami rinkos likvidumą.'},
+  {h:'Praktinis pavyzdys', p:'Didelis pensijų fondas gali turėti analitikų komandą ir galimybę įvykdyti sandorį per milisekundes. Individualus investuotojas tokių išteklių paprastai neturi — trumpalaikėje prekyboje pranašumas dažnai institucijų pusėje.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra mažmeninis investuotojas?', opts:['Didelis pensijų fondas','Pavienis asmuo, investuojantis savo pinigus','Vyriausybinė institucija','Birža pati'], correct:1, ex:'Mažmeninis investuotojas yra individualus asmuo, investuojantis asmeninius pinigus.'},
   {diff:'lengvas', q:'Kas priskiriama instituciniams investuotojams?', opts:['Pavieniai smulkūs investuotojai','Pensijų fondai ir investiciniai fondai','Vidutinės mokyklos moksleiviai','Vienos šeimos taupomosios sąskaitos'], correct:1, ex:'Instituciniai investuotojai — tai stambios organizacijos, valdančios didelį kapitalą.'},
@@ -398,7 +408,8 @@ const M1_TOPICS = [
 {id:'t8', title:'Rinkos terminai', theory:[
   {h:'Bull ir bear rinka', p:'„Bull market“ (buliaus rinka) — laikotarpis, kai kainos ilgą laiką kyla ir vyrauja optimizmas. „Bear market“ (lokio rinka) — priešingai, kainos ilgai krenta, vyrauja pesimizmas.'},
   {h:'IPO', p:'IPO (pirminis viešas siūlymas) — tai momentas, kai privati įmonė pirmą kartą parduoda savo akcijas viešai biržoje.'},
-  {h:'Rinkos kapitalizacija', p:'Rinkos kapitalizacija (market cap) — bendra visų įmonės akcijų vertė (kaina × akcijų skaičius), naudojama įmonės dydžiui įvertinti.'}
+  {h:'Rinkos kapitalizacija', p:'Rinkos kapitalizacija (market cap) — bendra visų įmonės akcijų vertė (kaina × akcijų skaičius), naudojama įmonės dydžiui įvertinti.'},
+  {h:'Praktinis pavyzdys', p:'Įmonės A akcijos kaina €200, išleista 1 mln. akcijų → market cap €200 mln. Įmonės B akcijos kaina tik €20, bet išleista 50 mln. akcijų → market cap €1 mlrd. Nepaisant mažesnės kainos, Įmonė B iš tikrųjų didesnė.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas apibūdina „bull market“?', opts:['Ilgalaikis kainų kritimas','Ilgalaikis kainų kilimas ir optimizmas','Vienos dienos kainos šuolis','Biržos uždarymas'], correct:1, ex:'Bull market reiškia ilgalaikį augimo ir optimizmo laikotarpį rinkoje.'},
   {diff:'lengvas', q:'Kas apibūdina „bear market“?', opts:['Ilgalaikis kainų kilimas','Ilgalaikis kainų kritimas ir pesimizmas','Naujos akcijos debiutas','Dividendų mokėjimo diena'], correct:1, ex:'Bear market — ilgalaikis kainų kritimo ir pesimizmo laikotarpis.'},
@@ -413,7 +424,8 @@ const M1_TOPICS = [
 {id:'t9', title:'Kotiruočių skaitymas', theory:[
   {h:'Kainos ir pokytis', p:'Kotiruotėje paprastai matote dabartinę kainą ir pokytį (procentais ar suma) nuo praėjusios prekybos dienos uždarymo.'},
   {h:'Apimtis (volume)', p:'Apimtis rodo, kiek akcijų buvo nupirkta ar parduota per tam tikrą laikotarpį — didesnė apimtis dažnai reiškia stipresnį rinkos susidomėjimą.'},
-  {h:'52 savaičių intervalas', p:'52 savaičių aukščiausia ir žemiausia riba parodo, kokiame kainų diapazone akcija prekiavo per pastaruosius metus — tai padeda įvertinti dabartinę kainą kontekste.'}
+  {h:'52 savaičių intervalas', p:'52 savaičių aukščiausia ir žemiausia riba parodo, kokiame kainų diapazone akcija prekiavo per pastaruosius metus — tai padeda įvertinti dabartinę kainą kontekste.'},
+  {h:'Praktinis pavyzdys', p:'Akcijos 52 savaičių intervalas €15–€28, o dabartinė kaina €20 — tai reiškia, kad kaina yra maždaug per vidurį metinio diapazono, nei prie istorinio žemio, nei prie aukščio.'}
 ], visual:{
   intro:'Taip realiai atrodo kotiruotė (pavyzdys su fiktyvia įmone). Panašias kotiruotes rasite bet kurio brokerio programėlėje, banko investavimo platformoje, ar nemokamai — Google Finance, Yahoo Finance svetainėse. Lietuviškai kotiruotė dar vadinama tiesiog „quote“, o kartais pavadinta „instrumento kortele“ ar „ticker“ lentele.',
   html:'<div class="quote-mock"><div class="quote-mock-head"><b>NORD</b> · NordTech AB</div><div class="quote-mock-price">€20.00 <span class="up">▲ +0.8%</span></div><div class="quote-mock-grid"><div><span>Bid</span><b>€19.80</b></div><div><span>Ask</span><b>€20.00</b></div><div><span>Dienos intervalas</span><b>€19.50–€20.30</b></div><div><span>52 sav. intervalas</span><b>€15.00–€28.00</b></div><div><span>Apimtis</span><b>842 300</b></div><div><span>Rinkos kapitalizacija</span><b>€50 mln.</b></div></div></div>'
@@ -432,7 +444,8 @@ quiz:[
 {id:'t10', title:'Investavimo sąskaitų tipai', theory:[
   {h:'Maklerio sąskaita', p:'Standartinė investavimo sąskaita, per kurią perkate ir parduodate vertybinius popierius atviroje rinkoje.'},
   {h:'Mokesčių atžvilgiu privilegijuotos sąskaitos', p:'Daugelyje šalių egzistuoja specialios pensijų ar taupymo sąskaitos su mokesčių lengvatomis, skatinančios ilgalaikį investavimą — konkrečios taisyklės skiriasi priklausomai nuo šalies.'},
-  {h:'Pasirinkimas priklauso nuo tikslo', p:'Trumpalaikiams tikslams dažniau tinka paprasta maklerio sąskaita, o ilgalaikiam pensijos kaupimui — specializuotos, mokesčių lengvatas suteikiančios sąskaitos.'}
+  {h:'Pasirinkimas priklauso nuo tikslo', p:'Trumpalaikiams tikslams dažniau tinka paprasta maklerio sąskaita, o ilgalaikiam pensijos kaupimui — specializuotos, mokesčių lengvatas suteikiančios sąskaitos.'},
+  {h:'Praktinis pavyzdys', p:'Investuotojas, planuojantis naudoti pinigus po 30 metų pensijai, dažniausiai rinksis ilgalaikio taupymo sąskaitą su mokestinėmis lengvatomis, o ne paprastą prekybos sąskaitą.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra standartinė maklerio sąskaita?', opts:['Sąskaita, per kurią perkami/parduodami vertybiniai popieriai','Banko taupomoji sąskaita be jokių investicijų','Valstybės pensijų fondas','Grynųjų pinigų seifas'], correct:0, ex:'Maklerio sąskaita — pagrindinis įrankis prekybai vertybiniais popieriais.'},
   {diff:'lengvas', q:'Kokiam tikslui dažniausiai naudojamos mokesčių atžvilgiu privilegijuotos sąskaitos?', opts:['Kasdienėms pirkinių išlaidoms','Ilgalaikiam pensijos taupymui','Valiutos keitimui','Paskolų grąžinimui'], correct:1, ex:'Šios sąskaitos dažniausiai skirtos skatinti ilgalaikį taupymą pensijai.'},
@@ -446,7 +459,8 @@ quiz:[
 ]},
 {id:'t11', title:'Sudėtinės palūkanos', theory:[
   {h:'Kas yra sudėtinės palūkanos', p:'Sudėtinės palūkanos — tai pelnas, gaunamas ne tik nuo pradinės investuotos sumos, bet ir nuo anksčiau uždirbto pelno. Todėl suma auga vis greičiau laikui bėgant, ne tiesiog tolygiai.'},
-  {h:'Kodėl svarbu pradėti anksti', p:'Net nedidelė suma, investuota anksti, gali laikui bėgant užaugti daugiau nei didesnė suma, investuota vėliau — nes ji turi daugiau laiko sudėtinėms palūkanoms veikti. Šis principas dažnai vadinamas „laiko rinkoje“ pranašumu.'}
+  {h:'Kodėl svarbu pradėti anksti', p:'Net nedidelė suma, investuota anksti, gali laikui bėgant užaugti daugiau nei didesnė suma, investuota vėliau — nes ji turi daugiau laiko sudėtinėms palūkanoms veikti. Šis principas dažnai vadinamas „laiko rinkoje“ pranašumu.'},
+  {h:'Praktinis pavyzdys', p:'Turėdami €1000, augančius 10% per metus, po pirmų metų turėsite €1100. Antrus metus 10% skaičiuojama jau nuo €1100, ne nuo €1000, tad turėsite €1210 — ne €1200, kaip būtų be sudėtinio efekto.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra sudėtinės palūkanos?', opts:['Fiksuotas metinis mokestis bankui','Pelnas, gaunamas ne tik nuo pradinės sumos, bet ir nuo anksčiau uždirbto pelno','Vienkartinė premija už investavimą','Mokesčių lengvata investuotojams'], correct:1, ex:'Sudėtinės palūkanos reiškia, kad pelnas skaičiuojamas ir nuo ankstesnio pelno, ne vien nuo pradinės sumos.'},
   {diff:'lengvas', q:'Kodėl svarbu pradėti investuoti kuo anksčiau?', opts:['Nes vėliau investuoti draudžiama įstatymu','Nes ilgesnis laikas leidžia sudėtinėms palūkanoms stipriau paveikti sumos augimą','Nes ankstyvos investicijos visada saugesnės','Nes brokeriai ima mažesnius mokesčius jaunesniems investuotojams'], correct:1, ex:'Kuo ilgiau pinigai investuoti, tuo daugiau laiko turi sudėtinių palūkanų efektas.'},
@@ -460,7 +474,8 @@ quiz:[
 ]},
 {id:'t12', title:'Infliacija ir jos poveikis investicijoms', theory:[
   {h:'Kas yra infliacija', p:'Infliacija — bendras prekių ir paslaugų kainų lygio kilimas laikui bėgant, mažinantis pinigų perkamąją galią. Tie patys pinigai ateityje nuperka mažiau nei šiandien.'},
-  {h:'Kodėl tai svarbu investuotojui', p:'Jei investicijų grąža mažesnė už infliaciją, jūs realiai prarandate perkamąją galią, net jei nominali (matoma) suma auga. Todėl svarbu vertinti „realią“ grąžą — grąžą atėmus infliaciją.'}
+  {h:'Kodėl tai svarbu investuotojui', p:'Jei investicijų grąža mažesnė už infliaciją, jūs realiai prarandate perkamąją galią, net jei nominali (matoma) suma auga. Todėl svarbu vertinti „realią“ grąžą — grąžą atėmus infliaciją.'},
+  {h:'Praktinis pavyzdys', p:'Turėdami €10 000 grynaisiais, esant 4% metinei infliacijai, po metų jų reali perkamoji galia sumažėja iki maždaug €9 615 (10000 ÷ 1.04) — nors nominali suma nepasikeitė.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra infliacija?', opts:['Akcijų kainos kritimas','Bendras kainų lygio kilimas, mažinantis pinigų perkamąją galią','Banko palūkanų norma','Valstybės mokesčių tarifas'], correct:1, ex:'Infliacija reiškia bendrą kainų augimą, dėl kurio pinigai perka mažiau.'},
   {diff:'lengvas', q:'Kas nutinka grynųjų pinigų perkamajai galiai, kai infliacija aukšta?', opts:['Ji didėja','Ji mažėja','Ji nesikeičia','Ji dvigubėja'], correct:1, ex:'Aukšta infliacija greičiau mažina pinigų perkamąją galią.'},
@@ -475,7 +490,8 @@ quiz:[
 {id:'t13', title:'Investavimo mokesčiai ir komisiniai', theory:[
   {h:'Sandorio mokesčiai', p:'Brokeriai dažnai ima komisinį mokestį už kiekvieną pirkimo ar pardavimo sandorį — tai gali būti fiksuota suma arba procentas nuo sandorio vertės.'},
   {h:'Valdymo mokesčiai', p:'Fondai ir ETF dažniausiai ima metinį valdymo mokestį, išreikštą procentu nuo investuotos sumos, kuris automatiškai atskaitomas — jo dažnai net nepamatysite tiesiogiai išrašyto.'},
-  {h:'Kodėl mokesčiai svarbūs ilgame laikotarpyje', p:'Net nedidelis skirtumas mokesčiuose gali reikšmingai paveikti galutinę sumą per daugelį metų, nes mokesčiai „suvalgo“ dalį kiekvienerių metų sudėtinių palūkanų augimo.'}
+  {h:'Kodėl mokesčiai svarbūs ilgame laikotarpyje', p:'Net nedidelis skirtumas mokesčiuose gali reikšmingai paveikti galutinę sumą per daugelį metų, nes mokesčiai „suvalgo“ dalį kiekvienerių metų sudėtinių palūkanų augimo.'},
+  {h:'Praktinis pavyzdys', p:'Investuodami €10 000 su 1% metiniu mokesčiu, sumokėsite apie €100 per pirmus metus. Per 30 metų šis skirtumas, palyginti su 0.1% mokesčiu, dėl sudėtinių palūkanų gali sukurti tūkstančių eurų atotrūkį.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra sandorio (komisinis) mokestis?', opts:['Metinis mokestis už sąskaitos turėjimą','Mokestis, imamas už kiekvieną pirkimo ar pardavimo sandorį','Valstybės mokestis nuo dividendų','Bauda už klaidingą pavedimą'], correct:1, ex:'Komisinis mokestis mokamas kiekvieną kartą perkant ar parduodant vertybinius popierius.'},
   {diff:'lengvas', q:'Kaip dažniausiai išreiškiamas fondo ar ETF valdymo mokestis?', opts:['Fiksuota suma per mėnesį','Metiniu procentu nuo investuotos sumos','Vienkartiniu mokesčiu perkant fondą','Mokesčiu už kiekvieną dieną'], correct:1, ex:'Valdymo mokestis paprastai nurodomas kaip metinis procentas nuo valdomo turto.'},
@@ -489,7 +505,8 @@ quiz:[
 ]},
 {id:'t14', title:'Akcijų ir obligacijų porūšiai', theory:[
   {h:'Paprastosios vs privilegijuotosios akcijos', p:'Paprastosios akcijos suteikia balsavimo teisę įmonės sprendimuose. Privilegijuotosios akcijos dažnai suteikia pirmumą gaunant dividendus, tačiau paprastai be balsavimo teisės.'},
-  {h:'Obligacijų tipai', p:'Valstybės obligacijos paprastai laikomos saugiausiomis. Savivaldybių obligacijas išleidžia vietos valdžios institucijos. Įmonių obligacijų rizika priklauso nuo konkrečios įmonės finansinio patikimumo — ji gali labai skirtis.'}
+  {h:'Obligacijų tipai', p:'Valstybės obligacijos paprastai laikomos saugiausiomis. Savivaldybių obligacijas išleidžia vietos valdžios institucijos. Įmonių obligacijų rizika priklauso nuo konkrečios įmonės finansinio patikimumo — ji gali labai skirtis.'},
+  {h:'Praktinis pavyzdys', p:'Investuotojas, norintis pastovesnių dividendų ir pasiruošęs atsisakyti balsavimo teisės, rinktųsi privilegijuotąsias akcijas. Investuotojas, siekiantis maksimalios įtakos įmonės sprendimams, rinktųsi paprastąsias akcijas.'}
 ], quiz:[
   {diff:'lengvas', q:'Kuo paprastosios akcijos skiriasi nuo privilegijuotųjų?', opts:['Paprastosios suteikia balsavimo teisę, privilegijuotosios dažnai ne, bet turi pirmumą dividendams','Privilegijuotosios visada brangesnės','Paprastosios niekada nemoka dividendų','Privilegijuotosios negali būti parduodamos biržoje'], correct:0, ex:'Paprastosios akcijos suteikia balsavimo teisę, o privilegijuotosios dažnai turi pirmumą gaunant dividendus.'},
   {diff:'lengvas', q:'Kurios obligacijos paprastai laikomos saugiausiomis?', opts:['Įmonių obligacijos','Valstybės obligacijos','Savivaldybių obligacijos','Visos vienodai saugios'], correct:1, ex:'Valstybės obligacijos, remiamos valstybės mokesčių surinkimo galios, paprastai laikomos saugiausiomis.'},
@@ -500,62 +517,6 @@ quiz:[
   {diff:'lengvas', q:'Kuris akcijų tipas dažniau suteikia balsavimo teisę?', opts:['Paprastosios akcijos','Privilegijuotosios akcijos','Nei viena','Abi vienodai niekada nesuteikia'], correct:0, ex:'Paprastosios akcijos paprastai suteikia balsavimo teisę, privilegijuotosios — dažnai ne.'},
   {diff:'vidutinis', q:'Kodėl savivaldybių obligacijos gali skirtis pagal riziką nuo valstybės obligacijų?', opts:['Nes jas išleidžia vietos valdžia, o ne centrinė vyriausybė, su skirtingu finansiniu pajėgumu','Nes jos visada saugesnės už valstybės obligacijas','Nes jos identiškos valstybės obligacijoms visais atžvilgiais','Nes jos negali būti parduodamos biržoje'], correct:0, ex:'Vietos valdžios finansinis pajėgumas gali skirtis nuo centrinės vyriausybės, tad ir rizika skiriasi.'},
   {diff:'sunkus', q:'Investuotojas nori maksimalios balsavimo įtakos įmonės sprendimuose. Kurį akcijų tipą jis rinktųsi?', opts:['Paprastąsias akcijas','Privilegijuotąsias akcijas','Obligacijas','Bet kurį, nes visi suteikia vienodą balsavimo teisę'], correct:0, ex:'Paprastosios akcijos suteikia balsavimo teisę, kurios privilegijuotosios akcijos ir obligacijos dažniausiai neturi.'}
-]},
-{id:'t15', title:'Kas yra kriptovaliuta?', theory:[
-  {h:'Apibrėžimas', p:'Kriptovaliuta — skaitmeninis turtas, veikiantis decentralizuotame tinkle (blokų grandinėje), be centrinio banko ar vyriausybės kontrolės.'},
-  {h:'Blokų grandinė (blockchain)', p:'Blokų grandinė — paskirstyta duomenų bazė, viešai ir nekeičiamai įrašanti visus sandorius, tikrinama daugelio nepriklausomų tinklo dalyvių vienu metu.'},
-  {h:'Kuo skiriasi nuo tradicinių valiutų', p:'Kriptovaliuta neturi centrinio emitento, jos vertė nustatoma vien rinkos pasiūlos ir paklausos, ir ji dažnai būna itin volatili, palyginti su tradiciniais aktyvais.'}
-], quiz:[
-  {diff:'lengvas', q:'Kas yra kriptovaliuta?', opts:['Skaitmeninis turtas, veikiantis decentralizuotame tinkle be centrinio banko kontrolės','Popierinis valstybės išleistas vertybinis popierius','Banko sąskaitos rūšis su fiksuota palūkanų norma','Fizinė moneta, kaldinama valstybės'], correct:0, ex:'Kriptovaliuta yra skaitmeninis turtas be centrinės institucijos kontrolės.'},
-  {diff:'lengvas', q:'Kas yra blokų grandinė (blockchain)?', opts:['Paskirstyta, viešai tikrinama duomenų bazė, įrašanti sandorius','Vienos įmonės privatus serveris','Popierinis sandorių žurnalas banke','Vyriausybės išduota licencija prekybai'], correct:0, ex:'Blokų grandinė yra paskirstyta duomenų bazė, viešai tikrinama tinklo dalyvių.'},
-  {diff:'lengvas', q:'Kas kontroliuoja tradicinę valiutą, pavyzdžiui, eurą?', opts:['Centrinis bankas','Atsitiktinis interneto tinklas','Privatus asmuo','Niekas jos nekontroliuoja'], correct:0, ex:'Tradicines valiutas kontroliuoja centriniai bankai.'},
-  {diff:'vidutinis', q:'Kuo kriptovaliuta iš esmės skiriasi nuo tradicinės valiutos?', opts:['Ji neturi centrinio emitento ar banko, kontroliuojančio jos išleidimą','Ji visada teisiškai draudžiama visose šalyse','Ji visada turi fiksuotą, nekintančią vertę','Ją gali išleisti tik viena pasaulinė institucija'], correct:0, ex:'Pagrindinis skirtumas — kriptovaliuta neturi centrinio emitento, kontroliuojančio jos išleidimą.'},
-  {diff:'vidutinis', q:'Kodėl blokų grandinės įrašai laikomi sunkiai pakeičiamais?', opts:['Jie tikrinami ir saugomi daugelyje decentralizuotų tinklo mazgų vienu metu','Juos gali keisti tik viena centrinė institucija','Jie automatiškai ištrinami kas savaitę','Juos tikrina tik vienas asmuo pasaulyje'], correct:0, ex:'Paskirstytas patikrinimas daugelyje mazgų apsunkina įrašų pakeitimą.'},
-  {diff:'vidutinis', q:'Kas paprastai nustato kriptovaliutos kainą rinkoje?', opts:['Pirkėjų ir pardavėjų pasiūla bei paklausa, panašiai kaip akcijoms','Vien tik vyriausybės nustatytas fiksuotas tarifas','Vien tik kriptovaliutos kūrėjo sprendimas','Kaina niekada nesikeičia po išleidimo'], correct:0, ex:'Kriptovaliutos kaina, kaip ir akcijų, formuojasi iš pasiūlos ir paklausos rinkoje.'},
-  {diff:'sunkus', q:'Kodėl kriptovaliutų vertė dažnai laikoma sunkiau pagrindžiama nei akcijos, turinčios pelną ir turtą?', opts:['Kriptovaliuta dažnai neturi pinigų srautų, pelno ar apčiuopiamo turto, kuriuo remtis fundamentaliam vertinimui','Kriptovaliuta visada turi didesnį pelną nei bet kuri akcija','Akcijos niekada neturi jokios fundamentalios vertės','Kriptovaliutos vertė visada lygi jos kūrimo kaštams'], correct:0, ex:'Skirtingai nei akcijos, kriptovaliuta dažnai neturi pelno ar turto, kuriuo būtų galima pagrįsti fundamentalią vertę.'},
-  {diff:'sunkus', multi:true, q:'Kurie teiginiai apie kriptovaliutas yra teisingi?', opts:['Jos veikia decentralizuotame tinkle be centrinio banko','Blokų grandinės įrašai yra viešai patikrinami','Visos kriptovaliutos garantuoja fiksuotą, nekintančią vertę','Kriptovaliutų reguliavimas identiškas visame pasaulyje'], correct:[0,1], ex:'Kriptovaliutos veikia decentralizuotai su viešai tikrinamais įrašais — bet jos negarantuoja fiksuotos vertės, o reguliavimas smarkiai skiriasi tarp šalių.'}
-]},
-{id:'t16', title:'Kriptovaliutų rizika ir reguliavimas', theory:[
-  {h:'Ekstremalus volatilumas', p:'Kriptovaliutų kainos gali svyruoti dešimtimis procentų per vieną dieną — žymiai daugiau nei dauguma tradicinių aktyvų.'},
-  {h:'Reguliavimo neapibrėžtumas', p:'Skirtingos šalys taiko labai skirtingas taisykles kriptovaliutoms, o reguliavimas sparčiai keičiasi, kas gali staigiai paveikti kainą.'},
-  {h:'Saugojimo rizika', p:'Kriptovaliutos saugomos skaitmeninėse „piniginėse“ — prarasti prieigos raktai ar biržos įsilaužimai gali reikšti negrįžtamą turto praradimą.'}
-], quiz:[
-  {diff:'lengvas', q:'Kaip kriptovaliutų volatilumas paprastai lyginasi su tradicinių akcijų?', opts:['Kriptovaliutos paprastai daug labiau volatilios','Kriptovaliutos paprastai daug mažiau volatilios','Volatilumas visada identiškas abiem','Kriptovaliutos niekada nesvyruoja'], correct:0, ex:'Kriptovaliutos paprastai turi žymiai didesnį volatilumą nei tradicinės akcijos.'},
-  {diff:'lengvas', q:'Kur paprastai saugomos kriptovaliutos?', opts:['Skaitmeninėse „piniginėse“','Popieriniuose banko čekiuose','Fiziniuose seifuose kaip monetos','Jos apskritai nereikalauja jokio saugojimo'], correct:0, ex:'Kriptovaliutos saugomos skaitmeninėse piniginėse su privačiais raktais.'},
-  {diff:'lengvas', q:'Ar kriptovaliutų reguliavimas vienodas visame pasaulyje?', opts:['Ne, jis labai skiriasi tarp šalių','Taip, visos šalys taiko identiškas taisykles','Reguliavimo apskritai niekur nėra','Reguliavimas taikomas tik vienai valstybei pasaulyje'], correct:0, ex:'Skirtingos šalys taiko labai skirtingas kriptovaliutų reguliavimo taisykles.'},
-  {diff:'vidutinis', q:'Kodėl reguliavimo neapibrėžtumas gali staigiai paveikti kriptovaliutos kainą?', opts:['Naujos taisyklės ar draudimai gali staiga pakeisti investuotojų galimybes ar norą prekiauti','Reguliavimas niekada neturi jokios įtakos kainai','Reguliavimas visada iš anksto žinomas metais į priekį','Reguliavimas veikia tik akcijas, ne kriptovaliutas'], correct:0, ex:'Netikėti reguliavimo pokyčiai gali staiga pakeisti rinkos dalyvių elgesį ir kainą.'},
-  {diff:'vidutinis', q:'Kokia rizika kyla praradus prieigos raktus (private keys) į skaitmeninę piniginę?', opts:['Galimas negrįžtamas viso turto praradimas be jokio atkūrimo būdo','Bankas visada gali atkurti prieigą per kelias dienas','Rizikos nėra, raktus visada galima atstatyti nemokamai','Turtas automatiškai pervedamas į naują piniginę'], correct:0, ex:'Praradus prieigos raktus, kriptovaliuta paprastai negrįžtamai prarandama.'},
-  {diff:'vidutinis', q:'Kodėl biržos įsilaužimai laikomi specifine kriptovaliutų rizika?', opts:['Jei kriptovaliuta saugoma biržoje, o birža nulaužiama, investuotojas gali negrįžtamai prarasti savo turtą','Biržos įsilaužimai niekada nepaveikia investuotojų turto','Biržos yra visiškai apsaugotos nuo bet kokių įsilaužimų','Ši rizika taikoma tik akcijų biržoms, ne kriptovaliutoms'], correct:0, ex:'Laikant kriptovaliutą biržoje, jos įsilaužimas gali reikšti negrįžtamą turto praradimą.'},
-  {diff:'sunkus', q:'Kodėl itin aukštas volatilumas reiškia, kad kriptovaliuta netinka investuotojui su labai trumpu laiko horizontu ir žema rizikos tolerancija?', opts:['Didelis svyravimas kelia riziką, kad tiksliai prireikus pinigų vertė gali būti laikinai smarkiai nukritusi','Volatilumas neturi jokios įtakos trumpo horizonto investuotojams','Trumpas laiko horizontas visada reikalauja didžiausio volatilumo','Rizikos tolerancija niekada nesusijusi su volatilumu'], correct:0, ex:'Didelis svyravimas ypač pavojingas, kai laiko atsigauti po nuosmukio nėra daug.'},
-  {diff:'sunkus', multi:true, q:'Kurie teiginiai apie kriptovaliutų riziką yra teisingi?', opts:['Kainos gali svyruoti dešimtimis procentų per dieną','Reguliavimas gali staiga pasikeisti ir paveikti kainą','Prarastus prieigos raktus visada galima atkurti per banką','Biržos įsilaužimai niekada neturi įtakos investuotojo turtui'], correct:[0,1], ex:'Kriptovaliutos pasižymi itin aukštu volatilumu ir reguliavimo neapibrėžtumu — tačiau prarastų raktų banke atkurti negalima, o biržos įsilaužimai realiai gali kainuoti investuotojui turtą.'}
-]},
-{id:'t17', title:'Kriptovaliutų paskirtis ir tipai', theory:[
-  {h:'Skirtingi tikslai', p:'Kai kurios kriptovaliutos kuriamos kaip vertės saugykla (pvz. Bitcoin dažnai lyginamas su „skaitmeniniu auksu“), kitos — kaip platforma programoms ir išmaniosioms sutartims vykdyti (pvz. Ethereum), trečios — kaip mokėjimo priemonė (utility token) konkrečioje sistemoje.'},
-  {h:'Kaip atskirti tikslą', p:'Verta pažiūrėti, kokią problemą projektas sprendžia, kas jį realiai naudoja, ir ar jo vertė susijusi su realiu naudojimu, ar vien spekuliacija.'},
-  {h:'Įspėjimas', p:'Daugelis projektų neturi aiškaus, realaus naudojimo atvejo — jų vertė grindžiama vien lūkesčiais ir spekuliacija, o ne realia technologija ar paslauga.'}
-], quiz:[
-  {diff:'lengvas', q:'Kokia kriptovaliuta dažnai lyginama su „skaitmeniniu auksu“ kaip vertės saugykla?', opts:['Bitcoin','Ethereum','Visos kriptovaliutos vienodai','Nė viena kriptovaliuta'], correct:0, ex:'Bitcoin dažniausiai lyginamas su skaitmeniniu auksu dėl savo, kaip vertės saugyklos, pozicionavimo.'},
-  {diff:'lengvas', q:'Kokia kriptovaliuta žinoma kaip platforma išmaniosioms sutartims (smart contracts) vykdyti?', opts:['Ethereum','Vien tik Bitcoin','Vien tik auksas','Nė viena iš šių'], correct:0, ex:'Ethereum plačiai žinoma kaip platforma programoms ir išmaniosioms sutartims vykdyti.'},
-  {diff:'lengvas', q:'Kas yra „utility token“?', opts:['Tokenas, skirtas naudoti kaip mokėjimo priemonė konkrečioje sistemoje ar platformoje','Vien tik popierinis vertybinis popierius','Valstybės išleista valiuta','Bankinis indėlio sertifikatas'], correct:0, ex:'Utility token skirtas naudoti konkrečios platformos ar sistemos viduje.'},
-  {diff:'vidutinis', q:'Kodėl svarbu suprasti, kokią problemą sprendžia konkretus kriptoprojektas prieš investuojant?', opts:['Tai padeda įvertinti, ar projekto vertė grindžiama realiu naudojimu, ar vien spekuliacija','Tai visiškai nesvarbu priimant investavimo sprendimą','Visi projektai sprendžia identišką problemą','Problemos supratimas garantuoja pelną'], correct:0, ex:'Projekto tikslo supratimas padeda atskirti realų naudojimą nuo grynos spekuliacijos.'},
-  {diff:'vidutinis', q:'Kuo skiriasi „vertės saugyklos“ tikslas nuo „mokėjimo platformos“ tikslo?', opts:['Vertės saugykla siekia išlaikyti/didinti vertę laikui bėgant, mokėjimo platforma siekia palengvinti sandorius ar programas','Šie du tikslai visada identiški','Vertės saugykla visada reiškia didesnę riziką nei mokėjimo platforma','Mokėjimo platforma niekada nesusijusi su technologija'], correct:0, ex:'Šie du tikslai atspindi skirtingas projekto paskirtis ir vertinimo kriterijus.'},
-  {diff:'vidutinis', q:'Kodėl daugelis kriptoprojektų neturi aiškaus, realaus naudojimo atvejo?', opts:['Daugelis kuriami vien spekuliaciniam susidomėjimui, be realaus techninio ar verslo poreikio','Visi kriptoprojektai teisiškai privalo turėti realų naudojimą','Realus naudojimas visada garantuotas kiekvienam projektui','Tai neįmanoma techniškai jokiam projektui'], correct:0, ex:'Nemažai projektų kuriami daugiau spekuliaciniam susidomėjimui nei realiam poreikiui spręsti.'},
-  {diff:'sunkus', q:'Investuotojas mato du projektus: vienas turi aiškų techninį sprendimą realiai problemai, kitas neturi jokio aiškaus tikslo, bet kaina sparčiai kyla. Ką tai geriausiai iliustruoja apie riziką?', opts:['Kainos kilimas savaime negarantuoja realios vertės — antrasis projektas gali būti grynai spekuliacinis, nepriklausomai nuo kainos judėjimo','Kainos kilimas visada įrodo, kad projektas turi realų tikslą','Abu projektai vienodai patikimi, nes abu kriptovaliutos','Tikslo aiškumas neturi jokios įtakos rizikai'], correct:0, ex:'Kainos kilimas gali vykti ir be jokio realaus pagrindo — tai nėra patikimybės įrodymas.'},
-  {diff:'sunkus', multi:true, q:'Kurie teiginiai apie kriptovaliutų paskirtį yra teisingi?', opts:['Skirtingi projektai gali turėti labai skirtingus tikslus','Kai kurie tokenai skirti naudoti konkrečiose platformose','Kainos kilimas visada įrodo realų naudojimą','Visi kriptoprojektai turi identišką paskirtį'], correct:[0,1], ex:'Kriptoprojektai tikrai skiriasi savo paskirtimi, o kai kurie tokenai skirti konkrečiam platformos naudojimui — tačiau kainos kilimas savaime neįrodo realaus naudojimo, ir projektai jokiu būdu nėra identiški.'}
-]},
-{id:'t18', title:'Kaip skaityti kriptovaliutos „baltąją knygą“ (whitepaper)', theory:[
-  {h:'Kas yra whitepaper', p:'Whitepaper — techninis-verslo dokumentas, kuriame projekto kūrėjai paaiškina, kokią problemą sprendžia, kaip veikia technologija, ir kaip veikia tokeno ekonomika (tokenomics).'},
-  {h:'Ką tikrinti', p:'Verta patikrinti: ar aiškiai apibrėžta problema ir sprendimas, kas yra komanda (ar jie viešai identifikuojami), kaip paskirstomi tokenai, ir ar egzistuoja realus veikiantis produktas, ar tik idėja popieriuje.'},
-  {h:'Kur rasti', p:'Whitepaper dažniausiai skelbiamas projekto oficialioje svetainėje. Informaciniai portalai, tokie kaip CoinMarketCap ar CoinGecko, taip pat dažnai turi tiesioginę nuorodą į whitepaper prie kiekvieno kriptoprojekto įrašo.'}
-], quiz:[
-  {diff:'lengvas', q:'Kas yra kriptovaliutos „whitepaper“?', opts:['Techninis-verslo dokumentas, paaiškinantis projekto problemą, technologiją ir tokeno ekonomiką','Valstybės išduotas prekybos leidimas','Banko sąskaitos išrašas','Biržos kotiruočių lentelė'], correct:0, ex:'Whitepaper yra dokumentas, paaiškinantis projekto tikslą, technologiją ir tokenomiką.'},
-  {diff:'lengvas', q:'Kur dažniausiai galima rasti projekto whitepaper?', opts:['Projekto oficialioje svetainėje','Vien tik spausdintoje knygoje bibliotekoje','Vien tik banko skyriuje','Whitepaper niekada nėra viešai prieinamas'], correct:0, ex:'Whitepaper paprastai skelbiamas viešai projekto oficialioje svetainėje.'},
-  {diff:'lengvas', q:'Kokiuose informaciniuose portaluose dažnai yra nuorodos į whitepaper prie kiekvieno kriptoprojekto?', opts:['CoinMarketCap arba CoinGecko','Vien tik vyriausybės svetainėse','Vien tik akcijų biržos svetainėje','Tokių portalų apskritai nėra'], correct:0, ex:'CoinMarketCap ir CoinGecko dažnai pateikia tiesiogines nuorodas į projektų whitepaper.'},
-  {diff:'vidutinis', q:'Kodėl svarbu patikrinti, ar projekto komanda yra viešai identifikuojama?', opts:['Anonimiška komanda gali sunkiau būti patraukta atsakomybėn, jei projektas pasirodo nesąžiningas','Komandos identifikavimas niekada nesvarbus vertinant projektą','Anonimiškumas visada reiškia didesnį saugumą investuotojui','Visi projektai teisiškai privalo turėti viešą komandą'], correct:0, ex:'Viešai identifikuojama komanda suteikia daugiau atskaitomybės nei anonimiška.'},
-  {diff:'vidutinis', q:'Kas yra „tokenomics“?', opts:['Kaip tokenai kuriami, paskirstomi ir naudojami projekto ekonomikoje','Vien tik tokeno kaina biržoje šiuo momentu','Vien tik tokeno spalva ir logotipas','Valstybės nustatytas tokeno mokestis'], correct:0, ex:'Tokenomics apibūdina tokeno kūrimo, paskirstymo ir naudojimo taisykles projekto viduje.'},
-  {diff:'vidutinis', q:'Kodėl vien gražiai parašytas whitepaper savaime negarantuoja projekto sėkmės ar sąžiningumo?', opts:['Whitepaper yra tik dokumentas su pažadais, jo turinys neįrodo, kad technologija realiai veikia ar bus įgyvendinta','Gražus dokumentas visada reiškia patikimą projektą','Whitepaper teisiškai privalo būti tikslus visose šalyse','Whitepaper egzistavimas automatiškai reiškia sėkmę'], correct:0, ex:'Whitepaper yra pažadų dokumentas — jo kokybė savaime neįrodo realaus įgyvendinimo ar sąžiningumo.'},
-  {diff:'sunkus', q:'Whitepaper žada revoliucinę technologiją, bet projektas neturi jokio veikiančio produkto, viešos kodo saugyklos (pvz. GitHub) ar identifikuojamos komandos. Ką tai turėtų signalizuoti atsargiam investuotojui?', opts:['Didelius perspėjimo ženklus, rodančius galimai nepatikimą ar apgaulingą projektą','Kad projektas tikrai bus sėkmingas ateityje','Kad tokie požymiai visiškai nesvarbūs vertinant projektą','Kad reikia iškart investuoti, kol kaina dar žema'], correct:0, ex:'Veikiančio produkto, viešo kodo ir identifikuojamos komandos nebuvimas kartu yra reikšmingi perspėjimo ženklai.'},
-  {diff:'sunkus', multi:true, q:'Kurie teiginiai apie whitepaper skaitymą yra teisingi?', opts:['Verta patikrinti, ar komanda viešai identifikuojama','Verta patikrinti tokenų paskirstymo struktūrą','Gražus dizainas visada įrodo projekto patikimumą','Whitepaper egzistavimas garantuoja projekto sėkmę'], correct:[0,1], ex:'Komandos identifikavimas ir tokenų paskirstymo patikrinimas yra svarbūs vertinimo žingsniai — tačiau nei dizainas, nei vien whitepaper egzistavimas negarantuoja patikimumo ar sėkmės.'}
 ]}
 ];
 
@@ -578,16 +539,6 @@ const M1_CASE_STUDIES = [
     {q:'Jei investuotumėte €1000 į StabiliPajama su 4% dividendų pajamingumu, kiek apytiksliai gautumėte dividendų per metus (neskaičiuojant kainos pokyčio)?', opts:['€4','€40','€400','€4000'], correct:1, ex:'4% nuo €1000 yra €40 per metus.'},
     {q:'Kurios įmonės kainos diapazonas rodo aukštesnį volatilumą?', opts:['StabiliPajama (€48–€55)','AugaGreit (€40–€90)','Jos vienodos','Neįmanoma nustatyti'], correct:1, ex:'AugaGreit turi platesnį kainų diapazoną (€40–€90) — tai rodo didesnį volatilumą.'},
     {q:'Investuotojui, kuriam svarbios pastovios pajamos ir mažesnė rizika, geriau tiktų...', opts:['AugaGreit','StabiliPajama','Abi vienodai gerai','Jokia iš šių'], correct:1, ex:'StabiliPajama, su mažesniu volatilumu ir dividendų pajamomis, geriau tinka konservatyvesniam investuotojui.'}
-  ]
-},
-{
-  title:'Atvejo analizė 3: Kriptovaliutos vieta portfelyje',
-  scenario:'Investuotojas turi €8000 portfelį: €6000 diversifikuotame akcijų ETF, €2000 nori investuoti į kriptovaliutą. Jo laiko horizontas — 3 metai iki namo pirkimo įmokos.',
-  questions:[
-    {q:'Remiantis kriptovaliutų volatilumo aptarimu, kokia pagrindinė rizika investuojant į kriptovaliutą su 3 metų horizontu prieš svarbų pirkinį?', opts:['Vertė gali smarkiai svyruoti ir tiksliai prireikus pinigų būti gerokai nukritusi','Kriptovaliuta visada auga stabiliai per 3 metus','Rizikos apskritai nėra, jei suma nedidelė','Trumpas horizontas visada tinka kriptovaliutai'], correct:0, ex:'Aukštas volatilumas kelia riziką, kad tiksliai reikiamu momentu vertė bus laikinai nukritusi.'},
-    {q:'Kokia investuotojo portfelio dalis (procentais) būtų skiriama kriptovaliutai, jei investuotų visą planuojamą €2000?', opts:['25%','2%','50%','100%'], correct:0, ex:'€2000 iš €8000 bendro portfelio sudaro 25%.'},
-    {q:'Remiantis diversifikacijos principais (2 modulis), ar 25% portfelio vienoje itin volatilioje kriptovaliutoje būtų laikoma atsargiu paskirstymu?', opts:['Ne, tai gana didelė koncentracija itin rizikingame aktyve, palyginti su likusiu portfeliu','Taip, tai idealiai subalansuota','25% visada laikoma per maža suma bet kokiai rizikai','Diversifikacijos principai netaikomi kriptovaliutoms'], correct:0, ex:'25% portfelio viename itin volatiliame aktyve yra reikšminga koncentracija, verta atsargaus svarstymo.'},
-    {q:'Kokia rekomendacija labiausiai atitiktų viską, ko investuotojas išmoko apie riziką, laiko horizontą ir diversifikaciją?', opts:['Apsvarstyti mažesnę sumą kriptovaliutai, o likusius pinigus, reikalingus artimam tikslui, laikyti stabilesniuose aktyvuose','Investuoti visus €2000 į kriptovaliutą be jokių abejonių','Parduoti visą ETF ir viską perkelti į kriptovaliutą','Laiko horizontas šiuo atveju visiškai nesvarbus'], correct:0, ex:'Trumpam, svarbiam tikslui geriau tinka mažesnė rizika — didelė kriptovaliutos dalis prieštarauja tiek laiko horizonto, tiek diversifikacijos principams.'}
   ]
 }
 ];
@@ -614,7 +565,8 @@ const M2_TOPICS = [
 {id:'t1', title:'Kas yra rizika investuojant?', theory:[
   {h:'Rizikos apibrėžimas', p:'Investavimo rizika — tai tikimybė, kad faktiniai rezultatai skirsis nuo tikėtų, įskaitant galimybę prarasti dalį ar visą investuotą sumą.'},
   {h:'Rizika nėra vien blogis', p:'Be tam tikros rizikos paprastai neįmanoma tikėtis didesnės grąžos nei tą duoda visiškai saugūs instrumentai — rizika ir galimybė yra susijusios.'},
-  {h:'Du pagrindiniai rizikos tipai', p:'Rinkos rizika — bendras visos rinkos kritimas, veikiantis beveik visus aktyvus. Įmonės specifinė rizika — problemos, susijusios tik su konkrečia įmone.'}
+  {h:'Du pagrindiniai rizikos tipai', p:'Rinkos rizika — bendras visos rinkos kritimas, veikiantis beveik visus aktyvus. Įmonės specifinė rizika — problemos, susijusios tik su konkrečia įmone.'},
+  {h:'Praktinis pavyzdys', p:'Ekonomikos recesijos metu krenta beveik visos akcijos, net gerai valdomų įmonių — tai rinkos (sisteminė) rizika. Tuo tarpu vienos įmonės vadovo skandalas paveiks tik tos įmonės akciją — tai įmonės specifinė rizika.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra investavimo rizika?', opts:['Garantuotas nuostolis','Tikimybė, kad rezultatai skirsis nuo tikėtų, įskaitant galimą nuostolį','Mokestis už investavimą','Laiko trukmė iki pelno'], correct:1, ex:'Rizika apibūdina neapibrėžtumą dėl to, kokie bus faktiniai rezultatai.'},
   {diff:'lengvas', q:'Kurie du pagrindiniai rizikos tipai aptariami?', opts:['Rinkos ir įmonės specifinė rizika','Valiutos ir laiko rizika','Mokesčių ir infliacijos rizika','Politinė ir teisinė rizika'], correct:0, ex:'Šioje temoje aptariami rinkos ir įmonės specifinė rizika.'},
@@ -629,7 +581,8 @@ const M2_TOPICS = [
 {id:'t2', title:'Rizikos ir grąžos ryšys', theory:[
   {h:'Pagrindinis principas', p:'Investuojant galioja pagrindinė taisyklė: didesnė galima grąža paprastai reikalauja prisiimti didesnę riziką.'},
   {h:'Rizikos premija', p:'Rizikos premija — tai papildoma grąža, kurios investuotojai reikalauja už rizikingesnio aktyvo turėjimą, palyginti su beveik be rizikos instrumentu (pvz., valstybės obligacija).'},
-  {h:'Nėra garantijų', p:'Didesnė rizika nereiškia garantuotos didesnės grąžos — ji tik padidina tikimybių diapazoną abiem kryptimis: ir dideliam pelnui, ir dideliam nuostoliui.'}
+  {h:'Nėra garantijų', p:'Didesnė rizika nereiškia garantuotos didesnės grąžos — ji tik padidina tikimybių diapazoną abiem kryptimis: ir dideliam pelnui, ir dideliam nuostoliui.'},
+  {h:'Praktinis pavyzdys', p:'Du aktyvai turi vienodą 8% istorinę vidutinę grąžą, bet Aktyvo A vertė svyruoja ±3% per mėnesį, o Aktyvo B — ±15%. Nors vidurkis vienodas, Aktyvas B rizikingesnis dėl platesnio svyravimo.'}
 ], quiz:[
   {diff:'lengvas', q:'Pagrindinis rizikos ir grąžos principas teigia, kad...', opts:['Rizika ir grąža nesusijusios','Didesnė galima grąža paprastai reikalauja didesnės rizikos','Mažesnė rizika visada duoda didesnę grąžą','Rizika egzistuoja tik akcijoms'], correct:1, ex:'Rizika ir potenciali grąža paprastai juda kartu.'},
   {diff:'lengvas', q:'Kas paprastai laikoma „beveik be rizikos“ instrumentu, su kuriuo lyginama rizikos premija?', opts:['Kriptovaliuta','Startuolio akcija','Valstybės obligacija','Kolekcionuojami meno kūriniai'], correct:2, ex:'Valstybės obligacijos dažnai naudojamos kaip beveik be rizikos atskaitos taškas.'},
@@ -644,7 +597,8 @@ const M2_TOPICS = [
 {id:'t3', title:'Kas yra volatilumas?', theory:[
   {h:'Apibrėžimas', p:'Volatilumas matuoja kainos svyravimo dydį per laiką — kiek stipriai ir dažnai aktyvo kaina keičiasi.'},
   {h:'Aukštas vs žemas volatilumas', p:'Aukšto volatilumo aktyvai (pvz., maži technologijų startuoliai, kriptovaliutos) gali keistis dešimtimis procentų per dieną; žemo volatilumo aktyvai (valstybės obligacijos) keičiasi lėtai ir nuosekliai.'},
-  {h:'Volatilumas praktikoje', p:'Nors volatilumas nėra tiksliai tas pats kas rizika, jis dažnai naudojamas kaip praktinis rizikos matas, nes kiekybiškai parodo kainos svyravimo mastą.'}
+  {h:'Volatilumas praktikoje', p:'Nors volatilumas nėra tiksliai tas pats kas rizika, jis dažnai naudojamas kaip praktinis rizikos matas, nes kiekybiškai parodo kainos svyravimo mastą.'},
+  {h:'Praktinis pavyzdys', p:'Po 50% nuostolio reikia 100% augimo, kad grįžtumėte į pradinį tašką (pvz. €100 → €50 → reikia +100%, kad vėl būtų €100). Todėl didelis volatilumas realiai „kenkia“ sudėtinei grąžai, net esant tokiam pačiam aritmetiniam vidurkiui.'}
 ], quiz:[
   {diff:'lengvas', q:'Ką matuoja volatilumas?', opts:['Įmonės metinį pelną','Kainos svyravimo dydį per laiką','Akcininkų skaičių','Dividendų dydį'], correct:1, ex:'Volatilumas rodo, kaip smarkiai kaina svyruoja.'},
   {diff:'lengvas', q:'Kuris aktyvas paprastai turi aukštesnį volatilumą?', opts:['Valstybės obligacija','Mažas technologijų startuolis','Banko indėlis','Pinigų rinkos fondas'], correct:1, ex:'Maži, greitai augantys startuoliai paprastai svyruoja stipriau nei stabilios obligacijos.'},
@@ -659,7 +613,8 @@ const M2_TOPICS = [
 {id:'t4', title:'Diversifikacija', theory:[
   {h:'Pagrindinė idėja', p:'Diversifikacija reiškia investicijų paskirstymą tarp kelių skirtingų aktyvų, kad vieno aktyvo nesėkmė nesugriautų viso portfelio.'},
   {h:'Klasikinis apibūdinimas', p:'„Nedėkite visų kiaušinių į vieną krepšelį“ — populiarus posakis, glaustai nusakantis diversifikacijos esmę.'},
-  {h:'Ką diversifikacija panaikina, o ko ne', p:'Diversifikacija efektyviai sumažina įmonės specifinę (nesisteminę) riziką, tačiau nepanaikina bendros rinkos rizikos, veikiančios visus aktyvus vienu metu.'}
+  {h:'Ką diversifikacija panaikina, o ko ne', p:'Diversifikacija efektyviai sumažina įmonės specifinę (nesisteminę) riziką, tačiau nepanaikina bendros rinkos rizikos, veikiančios visus aktyvus vienu metu.'},
+  {h:'Praktinis pavyzdys', p:'Investuotojas turi 20 skirtingų akcijų, bet visos jos — JAV technologijų sektoriaus įmonės. Nors akcijų skaičius didelis, tikra diversifikacija ribota, nes sektoriaus krizė paveiktų jas visas vienu metu.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra diversifikacija?', opts:['Investavimas tik į vieną geriausią akciją','Investicijų paskirstymas tarp kelių skirtingų aktyvų','Visų pinigų laikymas grynaisiais','Akcijų pirkimas tik per vieną dieną'], correct:1, ex:'Diversifikacija — paskirstymas tarp skirtingų aktyvų rizikai sumažinti.'},
   {diff:'lengvas', q:'Koks populiarus posakis apibūdina diversifikaciją?', opts:['„Laikas — pinigai“','„Nedėkite visų kiaušinių į vieną krepšelį“','„Pirk pigiau, parduok brangiau“','„Rizika lygu nuliui“'], correct:1, ex:'Šis posakis glaustai nusako diversifikacijos esmę.'},
@@ -674,7 +629,7 @@ const M2_TOPICS = [
 {id:'t5', title:'Koreliacija tarp aktyvų', theory:[
   {h:'Kas yra koreliacija', p:'Koreliacija parodo, kaip du aktyvai juda vienas kito atžvilgiu — kartu ta pačia kryptimi, priešingomis kryptimis, ar visiškai nepriklausomai.'},
   {h:'Kodėl tai svarbu diversifikacijai', p:'Efektyviai diversifikuotam portfeliui reikia aktyvų, kurių koreliacija žema arba neigiama — jie nelinkę kilti ar kristi tuo pačiu metu.'},
-  {h:'Praktinis pavyzdys', p:'Jei visos jūsų akcijos priklauso tai pačiai pramonės šakai, jos gali turėti aukštą koreliaciją ir kartu smarkiai kristi tos šakos krizės metu — tokia „diversifikacija“ tik iš pažiūros veiksminga.'}
+  {h:'Praktinis pavyzdys', p:'Jei visos jūsų akcijos priklauso tai pačiai pramonės šakai, jos gali turėti aukštą koreliaciją ir kartu smarkiai kristi tos šakos krizės metu — tokia „diversifikacija“ tik iš pažiūros veiksminga. Portfelis su akcijomis IR obligacijomis dažnai geriau atlaiko krizes, nes šie du aktyvų tipai istoriškai turi žemesnę tarpusavio koreliaciją.'}
 ], quiz:[
   {diff:'lengvas', q:'Ką parodo koreliacija tarp dviejų aktyvų?', opts:['Jų bendrą kainą','Kaip jie juda vienas kito atžvilgiu','Jų mokesčių tarifą','Jų prekybos valandas'], correct:1, ex:'Koreliacija matuoja dviejų aktyvų judėjimo ryšį.'},
   {diff:'lengvas', q:'Jei du aktyvai visada kyla ir krenta lygiai tuo pačiu metu ta pačia kryptimi, jų koreliacija yra...', opts:['Aukšta teigiama','Aukšta neigiama','Nulinė','Neįmanoma nustatyti'], correct:0, ex:'Judėjimas kartu ta pačia kryptimi rodo aukštą teigiamą koreliaciją.'},
@@ -689,7 +644,8 @@ const M2_TOPICS = [
 {id:'t6', title:'Rizikos tolerancija ir laiko horizontas', theory:[
   {h:'Rizikos tolerancija', p:'Rizikos tolerancija — kiek nuostolio investuotojas psichologiškai ir finansiškai gali pakelti, nepanikuodamas parduoti nepalankiu metu.'},
   {h:'Laiko horizontas', p:'Laiko horizontas — kiek laiko liko iki tol, kol prireiks investuotų pinigų. Ilgesnis horizontas paprastai leidžia prisiimti daugiau rizikos, nes yra daugiau laiko atsigauti po galimų kritimų.'},
-  {h:'Šie du veiksniai kartu', p:'Rizikos tolerancija ir laiko horizontas kartu padeda nustatyti, kokia investavimo strategija konkrečiam žmogui tinkamiausia.'}
+  {h:'Šie du veiksniai kartu', p:'Rizikos tolerancija ir laiko horizontas kartu padeda nustatyti, kokia investavimo strategija konkrečiam žmogui tinkamiausia.'},
+  {h:'Praktinis pavyzdys', p:'25 metų investuotojas, taupantis pensijai (40 metų horizontas), gali prisiimti daugiau rizikos nei 60 metų investuotojas, kuriam pinigų prireiks po 2 metų — net jei abu subjektyviai jaučiasi vienodai patogiai su rizika.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra rizikos tolerancija?', opts:['Mokestis už riziką','Kiek nuostolio investuotojas gali pakelti nepanikuodamas','Valstybės nustatytas rizikos limitas','Akcijos kainos svyravimo dydis'], correct:1, ex:'Rizikos tolerancija apibūdina asmeninę investuotojo ribą, kiek nuostolio jis gali pakelti ramiai.'},
   {diff:'lengvas', q:'Kas yra laiko horizontas investuojant?', opts:['Kiek valandų per dieną galima prekiauti','Kiek laiko liko iki tol, kol pinigų prireiks','Įmonės veiklos istorijos ilgis','Biržos darbo laikas'], correct:1, ex:'Laiko horizontas — kiek laiko liko iki pinigų panaudojimo.'},
@@ -704,7 +660,8 @@ const M2_TOPICS = [
 {id:'t7', title:'Aktyvų paskirstymas', theory:[
   {h:'Kas yra aktyvų paskirstymas', p:'Aktyvų paskirstymas (asset allocation) — tai, kaip investuotojas paskirsto savo kapitalą tarp skirtingų aktyvų klasių: akcijų, obligacijų, grynųjų ir kitų.'},
   {h:'Kas veikia pasirinkimą', p:'Paskirstymas paprastai priklauso nuo rizikos tolerancijos ir laiko horizonto — jaunesni investuotojai su ilgu horizontu dažnai renkasi didesnę akcijų dalį, artėjantys prie tikslo — daugiau stabilesnių aktyvų.'},
-  {h:'Rebalansavimas', p:'Rebalansavimas — periodinis grąžinimas prie norimo aktyvų paskirstymo, kai rinkos pokyčiai natūraliai jį pakeičia laikui bėgant.'}
+  {h:'Rebalansavimas', p:'Rebalansavimas — periodinis grąžinimas prie norimo aktyvų paskirstymo, kai rinkos pokyčiai natūraliai jį pakeičia laikui bėgant.'},
+  {h:'Praktinis pavyzdys', p:'Pradinis planas 70% akcijų / 30% obligacijų. Po metų, akcijoms išaugus, paskirstymas tapo 85%/15%. Rebalansavimas reikštų parduoti dalį akcijų ir pirkti obligacijų, grąžinant prie 70/30.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra aktyvų paskirstymas?', opts:['Vienos akcijos pirkimas didesniu kiekiu','Kaip kapitalas paskirstomas tarp skirtingų aktyvų klasių','Mokesčių deklaravimo būdas','Biržos prekybos valandos'], correct:1, ex:'Aktyvų paskirstymas apibūdina kapitalo pasiskirstymą tarp akcijų, obligacijų ir kitų klasių.'},
   {diff:'lengvas', q:'Kas yra rebalansavimas?', opts:['Visų investicijų pardavimas','Grąžinimas prie norimo aktyvų paskirstymo, kai rinkos pokyčiai jį pakeičia','Naujos maklerio sąskaitos atidarymas','Dividendų reinvestavimas automatiškai'], correct:1, ex:'Rebalansavimas atkuria pradinį norimą portfelio balansą.'},
@@ -718,7 +675,8 @@ const M2_TOPICS = [
 ]},
 {id:'t8', title:'Standartinis nuokrypis', theory:[
   {h:'Tikslesnis volatilumo matas', p:'Standartinis nuokrypis — statistinis matas, kiekybiškai parodantis, kiek vidutiniškai kaina nukrypsta nuo savo vidurkio per tam tikrą laikotarpį.'},
-  {h:'Kaip interpretuoti', p:'Didesnis standartinis nuokrypis reiškia didesnį kainos svyravimą, taigi paprastai ir didesnę riziką šia prasme. Jis leidžia skaičiais, ne vien žodžiais, palyginti kelių aktyvų svyravimą.'}
+  {h:'Kaip interpretuoti', p:'Didesnis standartinis nuokrypis reiškia didesnį kainos svyravimą, taigi paprastai ir didesnę riziką šia prasme. Jis leidžia skaičiais, ne vien žodžiais, palyginti kelių aktyvų svyravimą.'},
+  {h:'Praktinis pavyzdys', p:'Aktyvo A standartinis nuokrypis 5%, Aktyvo B — 20%. Nors abu gali turėti tą pačią vidutinę grąžą, Aktyvas B laikomas rizikingesniu, nes jo kaina svyruoja gerokai plačiau aplink vidurkį.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra standartinis nuokrypis investavimo kontekste?', opts:['Vidutinė akcijos kaina per metus','Statistinis matas, parodantis, kiek kaina vidutiniškai nukrypsta nuo savo vidurkio','Mokestis už riziką','Įmonės metinis pelnas'], correct:1, ex:'Standartinis nuokrypis kiekybiškai matuoja kainos svyravimą apie vidurkį.'},
   {diff:'lengvas', q:'Ką reiškia didesnis standartinis nuokrypis?', opts:['Didesnį kainos svyravimą','Didesnį dividendų mokėjimą','Mažesnę riziką','Didesnę rinkos kapitalizaciją'], correct:0, ex:'Didesnis standartinis nuokrypis rodo didesnį svyravimą apie vidurkį.'},
@@ -732,7 +690,8 @@ const M2_TOPICS = [
 ]},
 {id:'t9', title:'Geografinė diversifikacija', theory:[
   {h:'Kas tai', p:'Geografinė diversifikacija — investicijų paskirstymas ne tik tarp skirtingų įmonių ar sektorių, bet ir tarp skirtingų šalių ar regionų.'},
-  {h:'Kodėl svarbu', p:'Vienos šalies ekonominė krizė, politiniai įvykiai ar valiutos svyravimai gali stipriai paveikti tik tos šalies rinką, nebūtinai kitas. Tarptautiniai ETF leidžia lengvai pasiekti tokią diversifikaciją.'}
+  {h:'Kodėl svarbu', p:'Vienos šalies ekonominė krizė, politiniai įvykiai ar valiutos svyravimai gali stipriai paveikti tik tos šalies rinką, nebūtinai kitas. Tarptautiniai ETF leidžia lengvai pasiekti tokią diversifikaciją.'},
+  {h:'Praktinis pavyzdys', p:'Investuotojas, turintis tik savo gimtosios mažos šalies akcijų, yra labai priklausomas nuo tos vienos ekonomikos. Pridėjus tarptautinį ETF, portfelis tampa atsparesnis vienos šalies specifiniams sukrėtimams.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra geografinė diversifikacija?', opts:['Investavimas tik į vieną didelę įmonę','Investicijų paskirstymas tarp skirtingų šalių ar regionų','Investavimas tik į vietinę valiutą','Portfelio laikymas viename banke'], correct:1, ex:'Geografinė diversifikacija reiškia paskirstymą tarp skirtingų šalių/regionų rinkų.'},
   {diff:'lengvas', q:'Kodėl investuoti tik į vienos šalies rinką gali būti rizikingiau?', opts:['Nes tos šalies specifiniai įvykiai gali paveikti visą portfelį','Nes viena šalis visada praranda vertę','Nes tai teisiškai draudžiama','Nes viena šalis niekada neduoda pelno'], correct:0, ex:'Koncentracija vienoje šalyje reiškia, kad tos šalies specifiniai sukrėtimai paveikia visą portfelį.'},
@@ -746,7 +705,7 @@ const M2_TOPICS = [
 ]},
 {id:'t10', title:'Valiutos rizika', theory:[
   {h:'Kas tai', p:'Kai investuojama į užsienio valiuta išreikštus aktyvus, valiutos kurso pokyčiai gali paveikti investicijos vertę jūsų valiuta, net jei pati investicija (jos kaina užsienio valiuta) nepasikeitė.'},
-  {h:'Praktinis pavyzdys', p:'Jei investavote į JAV akciją doleriais, o doleris nusilpsta euro atžvilgiu, jūsų investicijos vertė eurais gali sumažėti, net jei akcijos kaina doleriais liko ta pati.'}
+  {h:'Praktinis pavyzdys', p:'Jei investavote į JAV akciją doleriais, o doleris nusilpsta euro atžvilgiu, jūsų investicijos vertė eurais gali sumažėti, net jei akcijos kaina doleriais liko ta pati. Pavyzdžiui, $10 000 portfelis prie kurso 1 EUR=1.10 USD yra vertas €9 091, o prie 1 EUR=1.25 USD — tik €8 000, nors dolerių suma nepasikeitė.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra valiutos rizika?', opts:['Rizika, kad akcijos kaina kris','Rizika, kad valiutos kurso pokyčiai paveiks investicijos vertę jūsų valiuta','Rizika, kad bankas bankrutuos','Rizika, kad mokesčiai padidės'], correct:1, ex:'Valiutos rizika kyla iš valiutų kurso svyravimų, ne iš pačios investicijos veiklos.'},
   {diff:'lengvas', q:'Kada valiutos rizika ypač aktuali?', opts:['Investuojant tik į vietinę valiutą','Investuojant į užsienio valiuta išreikštus aktyvus','Laikant grynuosius pinigus namuose','Perkant valstybės obligacijas savo šalyje'], correct:1, ex:'Valiutos rizika atsiranda, kai investicija išreikšta kita nei jūsų valiuta.'},
@@ -797,7 +756,8 @@ const M3_TOPICS = [
 {id:'t1', title:'Pajamų (pelno) ataskaita', theory:[
   {h:'Kas tai', p:'Pajamų (pelno) ataskaita — dokumentas, rodantis įmonės pajamas, sąnaudas ir pelną per tam tikrą laikotarpį (ketvirtį ar metus).'},
   {h:'Pagrindinės eilutės', p:'Pajamos (visos įplaukos iš pardavimų), sąnaudos (viskas, ką kainuoja veikla), ir grynasis pelnas = pajamos atėmus visas sąnaudas.'},
-  {h:'Kodėl tai svarbu investuotojui', p:'Pajamų ataskaita parodo, ar įmonė iš tikrųjų uždirba pinigus, ir kaip keičiasi jos pelningumas laikui bėgant.'}
+  {h:'Kodėl tai svarbu investuotojui', p:'Pajamų ataskaita parodo, ar įmonė iš tikrųjų uždirba pinigus, ir kaip keičiasi jos pelningumas laikui bėgant.'},
+  {h:'Praktinis pavyzdys', p:'Įmonė A turi €10 mln. pajamų ir €1 mln. pelno (10% marža). Įmonė B turi €5 mln. pajamų ir €1 mln. pelno (20% marža). Nors pelnas vienodas, Įmonė B pelningesnė santykinai su savo pajamomis.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra pajamų (pelno) ataskaita?', opts:['Dokumentas, rodantis įmonės turtą tam tikrą dieną','Dokumentas, rodantis įmonės pajamas, sąnaudas ir pelną per laikotarpį','Bankinis mokėjimo nurodymas','Akcijų kotiruočių sąrašas'], correct:1, ex:'Pajamų ataskaita apima laikotarpį (pvz. ketvirtį ar metus), ne vieną momentą.'},
   {diff:'lengvas', q:'Kaip apskaičiuojamas grynasis pelnas?', opts:['Pajamos padauginta iš sąnaudų','Pajamos atėmus visas sąnaudas','Turtas atėmus įsipareigojimus','Akcijos kaina padalinta iš EPS'], correct:1, ex:'Grynasis pelnas = pajamos − visos sąnaudos.'},
@@ -812,7 +772,8 @@ const M3_TOPICS = [
 {id:'t2', title:'Balansas', theory:[
   {h:'Kas tai', p:'Balansas — momentinė nuotrauka, rodanti įmonės turtą, įsipareigojimus ir nuosavą kapitalą konkrečią dieną (skirtingai nei pajamų ataskaita, kuri apima laikotarpį).'},
   {h:'Balanso lygtis', p:'Pagrindinė balanso lygtis: Turtas = Įsipareigojimai + Nuosavas kapitalas. Ji visada turi susibalansuoti.'},
-  {h:'Ką tai rodo investuotojui', p:'Balansas parodo finansinį stabilumą — kiek įmonė skolinga, palyginti su tuo, ką ji turi ir kiek priklauso akcininkams.'}
+  {h:'Ką tai rodo investuotojui', p:'Balansas parodo finansinį stabilumą — kiek įmonė skolinga, palyginti su tuo, ką ji turi ir kiek priklauso akcininkams.'},
+  {h:'Praktinis pavyzdys', p:'Jei įmonės turtas €20 mln., o įsipareigojimai €15 mln., tuomet nuosavas kapitalas = 20 − 15 = €5 mln. Tai parodo, kiek įmonės vertės realiai priklauso akcininkams po visų skolų.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra balansas?', opts:['Ataskaita, rodanti pajamas per metus','Momentinė nuotrauka, rodanti turtą, įsipareigojimus ir nuosavą kapitalą konkrečią dieną','Akcijų kainų istorija','Dividendų mokėjimo grafikas'], correct:1, ex:'Balansas — tai finansinės būklės „nuotrauka“ konkrečiu momentu.'},
   {diff:'lengvas', q:'Kokia yra pagrindinė balanso lygtis?', opts:['Pajamos = Sąnaudos + Pelnas','Turtas = Įsipareigojimai + Nuosavas kapitalas','Kaina = Pelnas × Akcijų skaičius','Pelnas = Turtas − Kaina'], correct:1, ex:'Tai fundamentali apskaitos lygtis, kuri visada turi susibalansuoti.'},
@@ -827,7 +788,8 @@ const M3_TOPICS = [
 {id:'t3', title:'Pinigų srautų ataskaita', theory:[
   {h:'Kas tai', p:'Pinigų srautų ataskaita rodo realų pinigų judėjimą į įmonę ir iš jos per laikotarpį, suskirstytą į tris dalis: veiklos, investicinę ir finansinę.'},
   {h:'Kodėl pelnas ≠ pinigai', p:'Įmonė gali rodyti pelną popieriuje (pvz., dėl klientams parduota kreditu, bet dar neapmokėtų sąskaitų), tačiau realiai neturėti tų pinigų sąskaitoje.'},
-  {h:'Veiklos pinigų srautas', p:'Tai dažnai svarbiausias rodiklis — ar pagrindinė įmonės veikla generuoja realius, o ne vien popierinius pinigus.'}
+  {h:'Veiklos pinigų srautas', p:'Tai dažnai svarbiausias rodiklis — ar pagrindinė įmonės veikla generuoja realius, o ne vien popierinius pinigus.'},
+  {h:'Praktinis pavyzdys', p:'Įmonė gali rodyti didelį grynąjį pelną, bet jei didžioji dalis pardavimų parduota kreditu (pinigai dar negauti), veiklos pinigų srautas gali būti neigiamas — tai svarbus perspėjimo ženklas, nepaisant „gero“ pelno skaičiaus.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra pinigų srautų ataskaita?', opts:['Prognozė, kiek įmonė uždirbs ateityje','Ataskaita, rodanti realų pinigų judėjimą į įmonę ir iš jos','Akcininkų sąrašas','Balanso kita pavadinimas'], correct:1, ex:'Pinigų srautų ataskaita seka faktinius pinigų judėjimus, ne vien apskaitinį pelną.'},
   {diff:'lengvas', q:'Į kiek pagrindinių dalių skirstoma pinigų srautų ataskaita?', opts:['Dvi: pajamos ir sąnaudos','Tris: veiklos, investicinę ir finansinę','Keturias: metų ketvirčius','Vieną — bendrą pinigų sumą'], correct:1, ex:'Trys dalys: veiklos, investicinė ir finansinė veikla.'},
@@ -843,7 +805,8 @@ const M3_TOPICS = [
 {id:'t4', title:'P/E rodiklis', theory:[
   {h:'Kas tai', p:'P/E (Price/Earnings, kainos ir pelno santykis) = akcijos kaina padalinta iš pelno, tenkančio vienai akcijai (EPS).'},
   {h:'Ką jis rodo', p:'P/E parodo, kiek kartų investuotojai sutinka mokėti už kiekvieną įmonės uždirbtą eurą pelno.'},
-  {h:'Kaip naudoti', p:'P/E geriausiai naudoti lyginant panašias įmones tame pačiame sektoriuje — aukštas P/E gali reikšti brangią arba sparčiai augančią įmonę.'}
+  {h:'Kaip naudoti', p:'P/E geriausiai naudoti lyginant panašias įmones tame pačiame sektoriuje — aukštas P/E gali reikšti brangią arba sparčiai augančią įmonę.'},
+  {h:'Praktinis pavyzdys', p:'Akcijos kaina €60, EPS (pelnas vienai akcijai) €3. P/E = 60 ÷ 3 = 20. Tai reiškia, kad investuotojai moka 20 kartų daugiau nei įmonės metinis pelnas vienai akcijai.'}
 ], quiz:[
   {diff:'lengvas', q:'Ką reiškia santrumpa P/E?', opts:['Profit/Equity','Price/Earnings (kainos ir pelno santykis)','Payment/Expense','Portfolio/Evaluation'], correct:1, ex:'P/E reiškia Price/Earnings — kainos ir pelno santykį.'},
   {diff:'lengvas', q:'Kaip apskaičiuojamas P/E rodiklis?', opts:['Akcijos kaina padalinta iš pelno vienai akcijai (EPS)','Pelnas padalintas iš akcijos kainos','Akcijos kaina padauginta iš akcijų skaičiaus','Pajamos padalintos iš sąnaudų'], correct:0, ex:'P/E = akcijos kaina ÷ EPS.'},
@@ -858,7 +821,8 @@ const M3_TOPICS = [
 {id:'t5', title:'EPS ir ROE', theory:[
   {h:'EPS — pelnas vienai akcijai', p:'EPS (Earnings Per Share) = grynasis pelnas padalintas iš išleistų akcijų skaičiaus. Rodo, kiek pelno „tenka“ vienai akcijai.'},
   {h:'ROE — nuosavo kapitalo grąža', p:'ROE (Return on Equity) = grynasis pelnas padalintas iš nuosavo kapitalo, išreikštas procentais. Rodo, kaip efektyviai įmonė naudoja akcininkų investuotus pinigus pelnui generuoti.'},
-  {h:'Kodėl abu svarbūs', p:'EPS ir ROE dažnai naudojami palyginti skirtingų įmonių pelningumą ir valdymo efektyvumą.'}
+  {h:'Kodėl abu svarbūs', p:'EPS ir ROE dažnai naudojami palyginti skirtingų įmonių pelningumą ir valdymo efektyvumą.'},
+  {h:'Praktinis pavyzdys', p:'Įmonės grynasis pelnas €2 mln., nuosavas kapitalas €10 mln. ROE = 2 ÷ 10 = 20%. Tai reiškia, kad įmonė uždirba 20 centų pelno už kiekvieną akcininkų investuotą eurą.'}
 ], quiz:[
   {diff:'lengvas', q:'Ką reiškia EPS?', opts:['Bendras įmonės pelnas','Pelnas, tenkantis vienai akcijai','Akcijos kaina','Įmonės išlaidos vienam darbuotojui'], correct:1, ex:'EPS — Earnings Per Share, pelnas vienai akcijai.'},
   {diff:'lengvas', q:'Ką reiškia ROE?', opts:['Rinkos vertės augimas','Nuosavo kapitalo grąža','Bendra įmonės skola','Metinė infliacija'], correct:1, ex:'ROE — Return on Equity, nuosavo kapitalo grąža.'},
@@ -873,7 +837,8 @@ const M3_TOPICS = [
 {id:'t6', title:'Skolos rodikliai', theory:[
   {h:'Skola/nuosavas kapitalas (D/E)', p:'D/E rodiklis parodo, kiek įmonė finansuoja savo veiklą skola, palyginti su nuosavu (akcininkų) kapitalu.'},
   {h:'Palūkanų padengimo rodiklis', p:'Šis rodiklis parodo, kiek kartų įmonės pelnas viršija jos palūkanų mokėjimus — kuo aukštesnis, tuo saugiau.'},
-  {h:'Kodėl tai svarbu', p:'Per didelė skola padidina riziką bankroto atveju sunkiais laikais, ypač jei pajamos staiga sumažėja.'}
+  {h:'Kodėl tai svarbu', p:'Per didelė skola padidina riziką bankroto atveju sunkiais laikais, ypač jei pajamos staiga sumažėja.'},
+  {h:'Praktinis pavyzdys', p:'Įmonės skola €8 mln., nuosavas kapitalas €4 mln. D/E = 8 ÷ 4 = 2 — skola dvigubai viršija nuosavą kapitalą, tai laikoma palyginti aukštu, rizikingesniu lygiu.'}
 ], quiz:[
   {diff:'lengvas', q:'Ką rodo skolos/nuosavo kapitalo (D/E) rodiklis?', opts:['Kiek įmonė finansuojama skola, palyginti su nuosavu kapitalu','Įmonės metinį pelną','Akcijos kainos pokytį','Dividendų dydį'], correct:0, ex:'D/E parodo santykį tarp skolos ir nuosavo kapitalo.'},
   {diff:'lengvas', q:'Kodėl per didelė skola yra rizikinga įmonei?', opts:['Nes skola visada nelegali','Nes ji padidina bankroto riziką sunkiais laikais','Nes skola visada didina akcijos kainą','Nes skola panaikina visus mokesčius'], correct:1, ex:'Didelė skolų našta padidina finansinį pažeidžiamumą sunkmečiu.'},
@@ -887,7 +852,8 @@ const M3_TOPICS = [
 ]},
 {id:'t7', title:'Bendrasis pelnas ir pelno marža', theory:[
   {h:'Bendrasis pelnas', p:'Bendrasis pelnas (gross profit) = pajamos atėmus tiesiogines prekių ar paslaugų gamybos sąnaudas (žaliavos, tiesioginis darbas ir pan.).'},
-  {h:'Bendroji pelno marža', p:'Bendroji pelno marža = bendrasis pelnas padalintas iš pajamų, išreikštas procentais. Ji rodo, kiek įmonė uždirba nuo kiekvieno pardavimo euro dar prieš kitas išlaidas (administravimo, rinkodaros ir kt.).'}
+  {h:'Bendroji pelno marža', p:'Bendroji pelno marža = bendrasis pelnas padalintas iš pajamų, išreikštas procentais. Ji rodo, kiek įmonė uždirba nuo kiekvieno pardavimo euro dar prieš kitas išlaidas (administravimo, rinkodaros ir kt.).'},
+  {h:'Praktinis pavyzdys', p:'Įmonės pajamos €2 mln., tiesioginės gamybos sąnaudos €1.2 mln. Bendrasis pelnas = 2 − 1.2 = €0.8 mln. Marža = 0.8 ÷ 2 = 40%.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra bendrasis pelnas?', opts:['Visos įmonės pajamos','Pajamos atėmus tiesiogines gamybos/paslaugų sąnaudas','Grynasis pelnas po visų mokesčių','Akcijos kaina padauginta iš akcijų skaičiaus'], correct:1, ex:'Bendrasis pelnas = pajamos − tiesioginės gamybos sąnaudos.'},
   {diff:'lengvas', q:'Kaip išreiškiama bendroji pelno marža?', opts:['Eurais','Procentais nuo pajamų','Akcijų skaičiumi','Metais'], correct:1, ex:'Bendroji pelno marža išreiškiama procentine dalimi nuo pajamų.'},
@@ -901,7 +867,8 @@ const M3_TOPICS = [
 ]},
 {id:'t8', title:'Apyvartinis kapitalas', theory:[
   {h:'Apibrėžimas', p:'Apyvartinis kapitalas (working capital) = trumpalaikis turtas atėmus trumpalaikius įsipareigojimus. Jis parodo, ar įmonė turi pakankamai likvidžių išteklių kasdienėms operacijoms.'},
-  {h:'Ką jis rodo', p:'Teigiamas apyvartinis kapitalas rodo, kad įmonė gali padengti artimiausius įsipareigojimus. Neigiamas gali signalizuoti trumpalaikio likvidumo problemas, net jei ilgalaikė padėtis atrodo gerai.'}
+  {h:'Ką jis rodo', p:'Teigiamas apyvartinis kapitalas rodo, kad įmonė gali padengti artimiausius įsipareigojimus. Neigiamas gali signalizuoti trumpalaikio likvidumo problemas, net jei ilgalaikė padėtis atrodo gerai.'},
+  {h:'Praktinis pavyzdys', p:'Įmonės trumpalaikis turtas €5 mln., trumpalaikiai įsipareigojimai €3 mln. Apyvartinis kapitalas = 5 − 3 = €2 mln. — teigiama reikšmė, rodanti pakankamą trumpalaikį likvidumą.'}
 ], quiz:[
   {diff:'lengvas', q:'Kaip apskaičiuojamas apyvartinis kapitalas?', opts:['Turtas atėmus visus įsipareigojimus','Trumpalaikis turtas atėmus trumpalaikius įsipareigojimus','Pajamos atėmus sąnaudas','Akcijos kaina padalinta iš EPS'], correct:1, ex:'Apyvartinis kapitalas = trumpalaikis turtas − trumpalaikiai įsipareigojimai.'},
   {diff:'lengvas', q:'Kas priskiriama trumpalaikiam turtui?', opts:['Grynieji pinigai ir atsargos, kurias planuojama parduoti/panaudoti per metus','Pastatai, naudojami dešimtmečius','Ilgalaikės paskolos, gautos iš banko','Prekės ženklo vertė'], correct:0, ex:'Trumpalaikis turtas apima grynuosius ir atsargas, planuojamas panaudoti per artimiausius metus.'},
@@ -915,7 +882,8 @@ const M3_TOPICS = [
 ]},
 {id:'t9', title:'Laisvas pinigų srautas', theory:[
   {h:'Apibrėžimas', p:'Laisvas pinigų srautas (free cash flow) = veiklos pinigų srautas atėmus kapitalo investicijas (pvz., įrangos ar pastatų pirkimą, reikalingą verslui palaikyti ar plėsti).'},
-  {h:'Kodėl svarbu', p:'Tai realūs pinigai, likę po būtinų investicijų į verslo palaikymą — juos įmonė gali panaudoti dividendams, skolos grąžinimui ar tolesniam augimui, todėl investuotojai jį vertina itin aukštai.'}
+  {h:'Kodėl svarbu', p:'Tai realūs pinigai, likę po būtinų investicijų į verslo palaikymą — juos įmonė gali panaudoti dividendams, skolos grąžinimui ar tolesniam augimui, todėl investuotojai jį vertina itin aukštai.'},
+  {h:'Praktinis pavyzdys', p:'Įmonės veiklos pinigų srautas €10 mln., kapitalo investicijos €7 mln. Laisvas pinigų srautas = 10 − 7 = €3 mln. — tai suma, kurią įmonė gali laisvai panaudoti dividendams ar skolos mažinimui.'}
 ], quiz:[
   {diff:'lengvas', q:'Kaip apskaičiuojamas laisvas pinigų srautas?', opts:['Pajamos atėmus sąnaudas','Veiklos pinigų srautas atėmus kapitalo investicijas','Turtas atėmus įsipareigojimus','Grynasis pelnas padalintas iš akcijų skaičiaus'], correct:1, ex:'Laisvas pinigų srautas = veiklos pinigų srautas − kapitalo investicijos.'},
   {diff:'lengvas', q:'Kam įmonė gali panaudoti laisvą pinigų srautą?', opts:['Tik atlyginimams mokėti','Dividendams, skolos grąžinimui, tolesniam augimui','Tik mokesčiams sumokėti','Jis negali būti niekam panaudotas'], correct:1, ex:'Laisvas pinigų srautas suteikia lankstumo — dividendams, skolų mažinimui ar investicijoms į augimą.'},
@@ -978,7 +946,8 @@ const M3_STATEMENT_PRACTICE = {
 const M4_TOPICS = [
 {id:'t1', title:'Linijinis vs žvakių grafikas', theory:[
   {h:'Linijinis grafikas', p:'Paprasčiausia grafiko forma — jungia tik uždarymo kainas taškas po taško. Lengva matyti bendrą tendenciją, bet trūksta detalių apie kainos svyravimą per periodą.'},
-  {h:'Žvakių grafikas', p:'Kiekviena „žvakė“ rodo keturias kainas per periodą: atidarymo, aukščiausią, žemiausią ir uždarymo. Suteikia žymiai daugiau informacijos apie kainos dinamiką per tą periodą.'}
+  {h:'Žvakių grafikas', p:'Kiekviena „žvakė“ rodo keturias kainas per periodą: atidarymo, aukščiausią, žemiausią ir uždarymo. Suteikia žymiai daugiau informacijos apie kainos dinamiką per tą periodą.'},
+  {h:'Praktinis pavyzdys', p:'Jei akcijos kaina atsidarė €50, dienos metu pakilo iki €55, nukrito iki €48, ir uždarė ties €52 — linijinis grafikas parodytų tik tašką €52, o žvakė atskleistų visą šį dienos dramą.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas rodoma linijiniame grafike?', opts:['Tik uždarymo kainos, sujungtos linija','Visos keturios dienos kainos','Vien tik prekybos apimtis','Vien tik dividendai'], correct:0, ex:'Linijinis grafikas jungia tik uždarymo kainas.'},
   {diff:'lengvas', q:'Kiek kainų rodo viena žvakė?', opts:['Vieną','Dvi','Keturias (open, high, low, close)','Šešias'], correct:2, ex:'Žvakė rodo atidarymo, aukščiausią, žemiausią ir uždarymo kainas.'},
@@ -992,7 +961,8 @@ const M4_TOPICS = [
 ]},
 {id:'t2', title:'Žvakės anatomija', theory:[
   {h:'Kūnas ir šešėliai', p:'Kūnas (body) rodo skirtumą tarp atidarymo ir uždarymo kainos. Šešėliai (dagčiai) — plonos linijos virš/po kūnu — rodo aukščiausią ir žemiausią kainą per periodą.'},
-  {h:'Spalva', p:'Žalia/balta spalva paprastai reiškia, kad kaina per periodą kilo; raudona/juoda — kad kaina krito.'}
+  {h:'Spalva', p:'Žalia/balta spalva paprastai reiškia, kad kaina per periodą kilo; raudona/juoda — kad kaina krito.'},
+  {h:'Praktinis pavyzdys', p:'Žvakė su ilgu apatiniu šešėliu ir mažu kūnu viršuje rodo, kad kaina dienos metu smarkiai krito, bet pirkėjai ją „grąžino“ atgal aukštyn iki uždarymo — tai dažnai laikoma teigiamu ženklu, rodančiu pirkėjų jėgą.'}
 ], quiz:[
   {diff:'lengvas', q:'Ką rodo žvakės kūnas?', opts:['Skirtumą tarp atidarymo ir uždarymo kainos','Dividendų dydį','Prekybos apimtį','Įmonės pelną'], correct:0, ex:'Kūnas rodo atstumą tarp atidarymo ir uždarymo kainų.'},
   {diff:'lengvas', q:'Ką rodo žvakės šešėliai (dagčiai)?', opts:['Aukščiausią ir žemiausią kainą per periodą','Vidutinę metų kainą','Įmonės pavadinimą','Mokesčių tarifą'], correct:0, ex:'Šešėliai žymi periodo kainų kraštutinumus.'},
@@ -1006,7 +976,8 @@ const M4_TOPICS = [
 ]},
 {id:'t3', title:'Trendo linijos', theory:[
   {h:'Kylanti ir krentanti trendo linija', p:'Kylanti trendo linija brėžiama sujungiant vis aukštesnius kainos minimumus. Krentanti — sujungia vis žemesnius maksimumus.'},
-  {h:'Trendo linijos pralaužimas', p:'Kai kaina peržengia trendo liniją, tai gali signalizuoti tendencijos pasikeitimą — ypač jei pralaužimą lydi didesnė prekybos apimtis.'}
+  {h:'Trendo linijos pralaužimas', p:'Kai kaina peržengia trendo liniją, tai gali signalizuoti tendencijos pasikeitimą — ypač jei pralaužimą lydi didesnė prekybos apimtis.'},
+  {h:'Praktinis pavyzdys', p:'Akcija 6 mėnesius laikėsi kylančios trendo linijos, pakildama nuo €30 iki €60 (100% augimas). Kai kaina krenta žemiau šios linijos su didele apimtimi, tai stipresnis signalas nei pralaužimas su maža apimtimi.'}
 ], quiz:[
   {diff:'lengvas', q:'Kaip brėžiama kylanti trendo linija?', opts:['Sujungiant vis aukštesnius kainos minimumus','Sujungiant vis žemesnius maksimumus','Sujungiant atsitiktinius taškus','Vien tik uždarymo kainas'], correct:0, ex:'Kylanti trendo linija jungia vis aukštėjančius minimumus.'},
   {diff:'lengvas', q:'Ką rodo trendo linijos pralaužimas?', opts:['Galimą tendencijos pasikeitimą','Garantuotą tolimesnį augimą','Kad akcija bus pašalinta iš biržos','Kad dividendai bus padidinti'], correct:0, ex:'Pralaužimas gali signalizuoti apie tendencijos pokytį.'},
@@ -1020,7 +991,8 @@ const M4_TOPICS = [
 ]},
 {id:'t4', title:'Palaikymas ir pasipriešinimas', theory:[
   {h:'Palaikymas ir pasipriešinimas', p:'Palaikymo lygis — kainos lygis, ties kuriuo pirkėjų susidomėjimas istoriškai sustabdydavo kritimą. Pasipriešinimo lygis — kainos lygis, ties kuriuo pardavėjų spaudimas sustabdydavo kilimą.'},
-  {h:'Lygių persiskyrimas', p:'Pralaužtas pasipriešinimo lygis dažnai tampa nauju palaikymu, ir atvirkščiai — pralaužtas palaikymas gali tapti nauju pasipriešinimu.'}
+  {h:'Lygių persiskyrimas', p:'Pralaužtas pasipriešinimo lygis dažnai tampa nauju palaikymu, ir atvirkščiai — pralaužtas palaikymas gali tapti nauju pasipriešinimu.'},
+  {h:'Praktinis pavyzdys', p:'Akcija tris kartus pasiekė €50 ir kiekvieną kartą nukrito — tai stiprus pasipriešinimo lygis. Kai ji ketvirtą kartą pralaužia €50 su didele apimtimi, €50 tikėtinai taps nauju palaikymu.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra palaikymo lygis?', opts:['Kainos lygis, ties kuriuo kritimas istoriškai sustodavo','Kainos lygis, ties kuriuo kilimas sustodavo','Vidutinė metinė kaina','Akcijos nominali vertė'], correct:0, ex:'Palaikymas — lygis, kur pirkėjai istoriškai sustabdydavo kritimą.'},
   {diff:'lengvas', q:'Kas yra pasipriešinimo lygis?', opts:['Kainos lygis, ties kuriuo kilimas istoriškai sustodavo','Kainos lygis, ties kuriuo kritimas sustodavo','Dividendų mokėjimo data','Biržos darbo laikas'], correct:0, ex:'Pasipriešinimas — lygis, kur pardavėjai istoriškai sustabdydavo kilimą.'},
@@ -1034,7 +1006,8 @@ const M4_TOPICS = [
 ]},
 {id:'t5', title:'Prekybos apimtis grafike', theory:[
   {h:'Apimties vaizdavimas', p:'Apimtis grafike paprastai vaizduojama kaip stulpeliai apačioje, rodantys, kiek akcijų prekiauta per periodą.'},
-  {h:'Apimties svarba', p:'Kainos judėjimas su didele apimtimi laikomas patikimesniu signalu nei judėjimas su maža apimtimi, nes atspindi platesnį rinkos dalyvių sutarimą.'}
+  {h:'Apimties svarba', p:'Kainos judėjimas su didele apimtimi laikomas patikimesniu signalu nei judėjimas su maža apimtimi, nes atspindi platesnį rinkos dalyvių sutarimą.'},
+  {h:'Praktinis pavyzdys', p:'Dvi akcijos abi pakilo 10% per dieną. Vienos apimtis buvo 5 kartus didesnė už vidutinę, kitos — vos šiek tiek virš vidutinės. Pirmojo kilimo tikimasi būti tvaresniam, nes jį palaiko platesnis rinkos sutarimas.'}
 ], quiz:[
   {diff:'lengvas', q:'Kaip apimtis dažniausiai vaizduojama grafike?', opts:['Stulpeliais apačioje po kainos grafiku','Spalvota linija virš kainos','Skaičiais viršutiniame kampe','Ji nevaizduojama grafike'], correct:0, ex:'Apimtis paprastai rodoma kaip stulpeliai po kainos grafiku.'},
   {diff:'lengvas', q:'Ką rodo didelė prekybos apimtis?', opts:['Stiprų rinkos dalyvių susidomėjimą/aktyvumą','Kad akcija bus pašalinta iš biržos','Kad dividendai bus sumažinti','Kad kaina niekada nesikeis'], correct:0, ex:'Didelė apimtis rodo padidėjusį rinkos dalyvių aktyvumą.'},
@@ -1048,7 +1021,8 @@ const M4_TOPICS = [
 ]},
 {id:'t6', title:'Grafikų šablonai', theory:[
   {h:'„Galvos ir pečių“ šablonas', p:'Trys viršūnės, vidurinė aukščiausia — dažnai signalizuoja tendencijos apsisukimą iš kylančios į krentančią.'},
-  {h:'Dviguba viršūnė/dugnas', p:'Kaina du kartus pasiekia panašų lygį ir atsimuša — dažnai signalizuoja apsisukimą. Svarbu: šablonai yra tikimybiniai signalai, ne garantijos.'}
+  {h:'Dviguba viršūnė/dugnas', p:'Kaina du kartus pasiekia panašų lygį ir atsimuša — dažnai signalizuoja apsisukimą. Svarbu: šablonai yra tikimybiniai signalai, ne garantijos.'},
+  {h:'Praktinis pavyzdys', p:'„Galvos ir pečių“ šablone kaina pirmiausia pakyla (kairysis petys), vėl nukrenta, pakyla dar aukščiau (galva), nukrenta, pakyla iki pirmo aukščio lygio (dešinysis petys) ir tada krenta žemiau „kaklo linijos“ — tai patvirtina šabloną.'}
 ], quiz:[
   {diff:'lengvas', q:'Kiek viršūnių turi klasikinis „galvos ir pečių“ šablonas?', opts:['Tris','Vieną','Penkias','Dešimt'], correct:0, ex:'Šablonas susideda iš trijų viršūnių — dviejų „pečių“ ir vienos „galvos“.'},
   {diff:'lengvas', q:'Ką dažnai signalizuoja dviguba viršūnė?', opts:['Galimą tendencijos apsisukimą žemyn','Garantuotą tolimesnį kilimą','Naujos akcijos IPO','Dividendų padidinimą'], correct:0, ex:'Dviguba viršūnė dažnai laikoma apsisukimo signalu.'},
@@ -1062,7 +1036,8 @@ const M4_TOPICS = [
 ]},
 {id:'t7', title:'Laiko intervalai', theory:[
   {h:'Skirtingi intervalai', p:'Grafikai gali rodyti skirtingus laiko intervalus — nuo minučių iki savaičių ar mėnesių. Trumpesni intervalai naudojami trumpalaikei prekybai, ilgesni — ilgalaikei analizei.'},
-  {h:'Reikšmė priklauso nuo intervalo', p:'Tas pats šablonas skirtinguose intervaluose gali turėti skirtingą reikšmę — ilgesnio intervalo šablonai paprastai laikomi reikšmingesniais.'}
+  {h:'Reikšmė priklauso nuo intervalo', p:'Tas pats šablonas skirtinguose intervaluose gali turėti skirtingą reikšmę — ilgesnio intervalo šablonai paprastai laikomi reikšmingesniais.'},
+  {h:'Praktinis pavyzdys', p:'Investuotojas, planuojantis investiciją 10 metų, analizuoja mėnesio grafiką ir mato stiprų kylantį trendą. Valandos grafike tuo pačiu metu gali matytis trumpalaikis kritimas — tai tik smulkus svyravimas didesnės tendencijos viduje.'}
 ], quiz:[
   {diff:'lengvas', q:'Kokie laiko intervalai naudojami trumpalaikei prekybai?', opts:['Trumpi, pvz. minutės ar valandos','Ilgi, pvz. dešimtmečiai','Vien tik metiniai intervalai','Intervalai nesvarbu trumpalaikei prekybai'], correct:0, ex:'Trumpalaikei prekybai naudojami trumpi intervalai, leidžiantys matyti smulkius pokyčius.'},
   {diff:'lengvas', q:'Kokie intervalai dažniau naudojami ilgalaikei analizei?', opts:['Ilgi, pvz. savaitės ar mėnesiai','Trumpi, pvz. sekundės','Vien tik minutiniai','Intervalai nesvarbu ilgalaikei analizei'], correct:0, ex:'Ilgalaikei analizei tinka platesni, ilgesni intervalai.'},
@@ -1114,7 +1089,8 @@ const M4_PRACTICE_ITEMS = {
 const M5_TOPICS = [
 {id:'t1', title:'Slankieji vidurkiai (SMA/EMA)', theory:[
   {h:'SMA ir EMA', p:'SMA (paprastas slankusis vidurkis) — vidutinė kaina per paskutines N dienų. EMA (eksponentinis slankusis vidurkis) suteikia didesnį svorį naujausioms kainoms, tad greičiau reaguoja į pokyčius.'},
-  {h:'Naudojimas', p:'Kai kaina kerta slankųjį vidurkį, tai kartais interpretuojama kaip signalas apie tendencijos pokytį.'}
+  {h:'Naudojimas', p:'Kai kaina kerta slankųjį vidurkį, tai kartais interpretuojama kaip signalas apie tendencijos pokytį.'},
+  {h:'Praktinis pavyzdys', p:'Kai 50 dienų SMA kerta 200 dienų SMA iš apačios į viršų, tai vadinama „auksiniu kryžiumi“ (golden cross) ir dažnai interpretuojama kaip ilgalaikis teigiamas signalas. Priešinga situacija vadinama „mirties kryžiumi“.'}
 ], quiz:[
   {diff:'lengvas', q:'Ką rodo slankusis vidurkis?', opts:['Vidutinę kainą per paskutines N dienų','Įmonės metinį pelną','Dividendų dydį','Akcininkų skaičių'], correct:0, ex:'Slankusis vidurkis apskaičiuoja vidutinę kainą per nustatytą periodą.'},
   {diff:'lengvas', q:'Kuo EMA skiriasi nuo SMA?', opts:['EMA suteikia didesnį svorį naujausioms kainoms','EMA visada lygus SMA','SMA reaguoja greičiau nei EMA','EMA naudojamas tik obligacijoms'], correct:0, ex:'EMA labiau pabrėžia naujausius duomenis nei SMA.'},
@@ -1128,7 +1104,8 @@ const M5_TOPICS = [
 ]},
 {id:'t2', title:'RSI (Relative Strength Index)', theory:[
   {h:'Kas yra RSI', p:'RSI matuoja kainos pokyčių greitį ir dydį, skalėje nuo 0 iki 100.'},
-  {h:'Perpirkta/perparduota', p:'RSI virš 70 dažnai interpretuojamas kaip „perpirkta“ (overbought), RSI žemiau 30 — kaip „perparduota“ (oversold). Šie lygiai nėra automatiniai signalai, o tik indikacijos.'}
+  {h:'Perpirkta/perparduota', p:'RSI virš 70 dažnai interpretuojamas kaip „perpirkta“ (overbought), RSI žemiau 30 — kaip „perparduota“ (oversold). Šie lygiai nėra automatiniai signalai, o tik indikacijos.'},
+  {h:'Praktinis pavyzdys', p:'Akcijos RSI pasiekia 85, bet kaina toliau kyla dar tris savaites. Tai parodo, kad stiprios tendencijos metu RSI gali likti kraštutinis ilgą laiką — vien aukštas RSI negarantuoja artimo apsisukimo.'}
 ], quiz:[
   {diff:'lengvas', q:'Kokioje skalėje matuojamas RSI?', opts:['Nuo 0 iki 100','Nuo -100 iki 100','Nuo 0 iki 10','Eurais'], correct:0, ex:'RSI matuojamas skalėje nuo 0 iki 100.'},
   {diff:'lengvas', q:'Koks RSI lygis dažnai laikomas „perpirktu“?', opts:['Virš 70','Žemiau 30','Lygiai 50','Virš 100'], correct:0, ex:'RSI virš 70 dažnai interpretuojamas kaip perpirkta būsena.'},
@@ -1142,7 +1119,8 @@ const M5_TOPICS = [
 ]},
 {id:'t3', title:'MACD', theory:[
   {h:'Kas yra MACD', p:'MACD (Moving Average Convergence Divergence) matuoja skirtumą tarp dviejų skirtingo laikotarpio eksponentinių slankiųjų vidurkių.'},
-  {h:'Signalinė linija', p:'MACD kirtimas su signaline linija kartais interpretuojamas kaip pirkimo/pardavimo signalas, o MACD histograma vizualiai rodo šio skirtumo dydį.'}
+  {h:'Signalinė linija', p:'MACD kirtimas su signaline linija kartais interpretuojamas kaip pirkimo/pardavimo signalas, o MACD histograma vizualiai rodo šio skirtumo dydį.'},
+  {h:'Praktinis pavyzdys', p:'Jei MACD histogramos stulpeliai mažėja, nors MACD linija dar virš signalinės linijos (formaliai teigiamas signalas), tai gali reikšti silpstantį momentumą — tokia situacija vadinama divergencija.'}
 ], quiz:[
   {diff:'lengvas', q:'Ką matuoja MACD?', opts:['Skirtumą tarp dviejų skirtingo laikotarpio slankiųjų vidurkių','Akcijos dividendų dydį','Įmonės skolos lygį','Prekybos valandas'], correct:0, ex:'MACD matuoja skirtumą tarp dviejų EMA su skirtingais periodais.'},
   {diff:'lengvas', q:'Kas yra MACD signalinė linija?', opts:['Papildoma linija, naudojama palyginti su MACD kirtimams nustatyti','Akcijos kainos riba','Dividendų mokėjimo data','Įmonės pelno prognozė'], correct:0, ex:'Signalinė linija naudojama nustatyti galimus MACD kirtimo signalus.'},
@@ -1156,7 +1134,8 @@ const M5_TOPICS = [
 ]},
 {id:'t4', title:'Bollingerio juostos', theory:[
   {h:'Struktūra', p:'Bollingerio juostos susideda iš vidurinės linijos (slankusis vidurkis) ir dviejų juostų virš/po ja, pagrįstų standartiniu nuokrypiu.'},
-  {h:'Interpretacija', p:'Kai kaina priartėja prie viršutinės juostos, tai kartais interpretuojama kaip santykinai aukšta kaina; prie apatinės — kaip santykinai žema. Juostų susiaurėjimas dažnai signalizuoja mažą volatilumą ir galimą būsimą stipresnį judėjimą.'}
+  {h:'Interpretacija', p:'Kai kaina priartėja prie viršutinės juostos, tai kartais interpretuojama kaip santykinai aukšta kaina; prie apatinės — kaip santykinai žema. Juostų susiaurėjimas dažnai signalizuoja mažą volatilumą ir galimą būsimą stipresnį judėjimą.'},
+  {h:'Praktinis pavyzdys', p:'Stiprios kylančios tendencijos metu kaina gali ilgai judėti palei viršutinę Bollingerio juostą, neapsiversdama — tai savaime negarantuoja artimo kritimo, priešingai nei gali atrodyti iš pirmo žvilgsnio.'}
 ], quiz:[
   {diff:'lengvas', q:'Iš ko susideda Bollingerio juostos?', opts:['Vidurinės linijos (slankusis vidurkis) ir dviejų juostų aplink ją','Vien tik vienos linijos','Trijų nesusijusių indikatorių','Dividendų grafiko'], correct:0, ex:'Bollingerio juostas sudaro vidurinė linija ir dvi juostos aplink ją.'},
   {diff:'lengvas', q:'Kas naudojama apskaičiuoti Bollingerio juostų plotį?', opts:['Standartinis nuokrypis','Dividendų pajamingumas','P/E rodiklis','Rinkos kapitalizacija'], correct:0, ex:'Juostų plotis paremtas standartiniu nuokrypiu nuo vidurkio.'},
@@ -1170,7 +1149,8 @@ const M5_TOPICS = [
 ]},
 {id:'t5', title:'Apimties indikatoriai', theory:[
   {h:'Kas tai', p:'Apimties indikatoriai analizuoja prekybos apimtį kartu su kaina, siekiant patvirtinti ar paneigti kainos judėjimo stiprumą.'},
-  {h:'Divergencija', p:'Jei kaina kyla, bet apimtis mažėja, tai gali signalizuoti silpstantį pirkimo susidomėjimą — toks neatitikimas vadinamas divergencija.'}
+  {h:'Divergencija', p:'Jei kaina kyla, bet apimtis mažėja, tai gali signalizuoti silpstantį pirkimo susidomėjimą — toks neatitikimas vadinamas divergencija.'},
+  {h:'Praktinis pavyzdys', p:'Akcijos kaina pasiekia naują aukščiausią tašką, bet apimtis yra mažiausia per pastarąsias 20 dienų. Tai laikoma „silpna“ patvirtinimo forma — mažas susidomėjimas gali reikšti, kad kilimas neturi tvirto pagrindo.'}
 ], quiz:[
   {diff:'lengvas', q:'Ką analizuoja apimties indikatoriai?', opts:['Prekybos apimtį kartu su kaina','Vien tik dividendus','Vien tik P/E rodiklį','Vien tik įmonės skolą'], correct:0, ex:'Apimties indikatoriai jungia kainos ir apimties duomenis.'},
   {diff:'lengvas', q:'Ką gali reikšti kylanti kaina su mažėjančia apimtimi?', opts:['Silpstantį pirkimo susidomėjimą','Stiprėjantį pirkimo susidomėjimą','Kad kaina niekada nekris','Kad akcija bus pašalinta iš biržos'], correct:0, ex:'Mažėjanti apimtis kylant kainai gali signalizuoti silpstantį susidomėjimą.'},
@@ -1184,7 +1164,8 @@ const M5_TOPICS = [
 ]},
 {id:'t6', title:'Indikatorių derinimas ir ribotumai', theory:[
   {h:'Ribotumai', p:'Nė vienas indikatorius nėra tobulas — jie remiasi praeities kainų duomenimis ir negarantuoja ateities rezultatų.'},
-  {h:'Derinimas', p:'Kelių skirtingo tipo indikatorių derinimas (pvz. trendo + momentumo + apimties) gali suteikti platesnį vaizdą nei vienas indikatorius, bet per daug indikatorių vienu metu gali sukelti prieštaringus signalus.'}
+  {h:'Derinimas', p:'Kelių skirtingo tipo indikatorių derinimas (pvz. trendo + momentumo + apimties) gali suteikti platesnį vaizdą nei vienas indikatorius, bet per daug indikatorių vienu metu gali sukelti prieštaringus signalus.'},
+  {h:'Praktinis pavyzdys', p:'RSI=75 (perpirkta), bet MACD ką tik davė teigiamą kirtimą, o kaina laikosi virš 50 dienų SMA su augančia apimtimi. Subalansuotas vertinimas: tendencija tebėra stipri, bet verta stebėti, ne veikti vien pagal vieną signalą.'}
 ], quiz:[
   {diff:'lengvas', q:'Ar indikatoriai garantuoja tikslią ateities kainą?', opts:['Ne, jie remiasi praeities duomenimis','Taip, jie visada tikslūs','Taip, bet tik akcijoms','Indikatoriai neturi jokio ryšio su kaina'], correct:0, ex:'Indikatoriai skaičiuojami iš praeities duomenų ir negarantuoja ateities.'},
   {diff:'lengvas', q:'Kodėl naudinga derinti kelis skirtingo tipo indikatorius?', opts:['Suteikia platesnį, labiau subalansuotą vaizdą nei vienas indikatorius','Tai visada garantuoja pelną','Tai visiškai nesvarbu','Vienas indikatorius visada geriau nei keli'], correct:0, ex:'Keli skirtingi indikatoriai kartu suteikia platesnę perspektyvą.'},
@@ -1236,7 +1217,8 @@ const M5_PRACTICE_ITEMS = {
 const M6_TOPICS = [
 {id:'t1', title:'Value investing', theory:[
   {h:'Pagrindinė idėja', p:'Value investing (vertės investavimas) — ieškoti įmonių, kurių akcijos rinkoje kainuoja mažiau, nei jų reali (fundamentali) vertė, remiantis finansine analize (P/E, balansas ir kt.).'},
-  {h:'Saugumo marža', p:'Klasikinis principas — pirkti su „saugumo marža“ (margin of safety): kainuoti gerokai žemiau apskaičiuotos tikrosios vertės, kad būtų atsarga klaidos ar netikėtumų atveju.'}
+  {h:'Saugumo marža', p:'Klasikinis principas — pirkti su „saugumo marža“ (margin of safety): kainuoti gerokai žemiau apskaičiuotos tikrosios vertės, kad būtų atsarga klaidos ar netikėtumų atveju.'},
+  {h:'Praktinis pavyzdys', p:'Value investuotojas randa žemo P/E įmonę, bet jos pajamos mažėja penkerius metus iš eilės. Žemas P/E čia gali atspindėti pagrįstą rinkos susirūpinimą dėl blogėjančių fundamentų, ne vien nepastebėtą vertę — reikia gilesnės analizės.'}
 ], quiz:[
   {diff:'lengvas', q:'Kokia pagrindinė value investing idėja?', opts:['Ieškoti įmonių, kainuojančių mažiau nei jų reali vertė','Ieškoti sparčiausiai augančių įmonių','Prekiauti kasdien pagal kainos svyravimus','Investuoti tik į indeksinius fondus'], correct:0, ex:'Value investing fokusuojasi į nepakankamai įvertintas įmones.'},
   {diff:'lengvas', q:'Kas yra „saugumo marža“ (margin of safety)?', opts:['Skirtumas tarp apskaičiuotos tikrosios vertės ir mažesnės pirkimo kainos','Mokestis brokeriui','Dividendų pajamingumo procentas','Rinkos kapitalizacijos dydis'], correct:0, ex:'Saugumo marža — atsarga tarp tikrosios vertės ir pirkimo kainos.'},
@@ -1250,7 +1232,8 @@ const M6_TOPICS = [
 ]},
 {id:'t2', title:'Growth investing', theory:[
   {h:'Pagrindinė idėja', p:'Growth investing (augimo investavimas) — investuoti į įmones, kurių pajamos/pelnas auga sparčiau nei rinkos vidurkis, tikintis, kad kaina toliau kils kartu su augimu.'},
-  {h:'Aukštesnis P/E', p:'Dažnai toleruojamas aukštesnis P/E, nes rinka moka premiją už tikėtiną ateities augimą.'}
+  {h:'Aukštesnis P/E', p:'Dažnai toleruojamas aukštesnis P/E, nes rinka moka premiją už tikėtiną ateities augimą.'},
+  {h:'Praktinis pavyzdys', p:'Growth įmonės akcijos P/E=80 jau atspindi labai optimistiškus lūkesčius. Jei įmonė paskelbia „tik gerus“ (bet ne „puikius“) rezultatus, kaina gali kristi, nes rinka tikėjosi dar daugiau.'}
 ], quiz:[
   {diff:'lengvas', q:'Kokia pagrindinė growth investing idėja?', opts:['Investuoti į sparčiai augančias įmones, tikintis tolimesnio augimo','Ieškoti nepakankamai įvertintų įmonių','Investuoti tik į obligacijas','Prekiauti kasdien remiantis naujienomis'], correct:0, ex:'Growth investing fokusuojasi į sparčiai augančias įmones.'},
   {diff:'lengvas', q:'Koks P/E lygis dažniau būdingas growth akcijoms?', opts:['Aukštesnis nei rinkos vidurkis','Visada žemiausias rinkoje','Lygiai nulis','P/E growth akcijoms neskaičiuojamas'], correct:0, ex:'Growth akcijos dažnai turi aukštesnį P/E dėl lūkesčių dėl ateities augimo.'},
@@ -1264,7 +1247,8 @@ const M6_TOPICS = [
 ]},
 {id:'t3', title:'Dividendų strategija', theory:[
   {h:'Pagrindinė idėja', p:'Investuoti į stabilias, dividendus mokančias įmones, siekiant pastovių pajamų srauto.'},
-  {h:'Dividendų reinvestavimas', p:'Dažnai derinama su dividendų reinvestavimu, siekiant sudėtinių palūkanų efekto (aptarto 1 modulyje).'}
+  {h:'Dividendų reinvestavimas', p:'Dažnai derinama su dividendų reinvestavimu, siekiant sudėtinių palūkanų efekto (aptarto 1 modulyje).'},
+  {h:'Praktinis pavyzdys', p:'Įmonė moka 12% dividendų pajamingumą, gerokai virš sektoriaus vidurkio (3%). Tai neturėtų automatiškai džiuginti — dažnai tai signalizuoja, kad rinka tikisi dividendo sumažinimo arba kad kaina smarkiai krito dėl problemų.'}
 ], quiz:[
   {diff:'lengvas', q:'Kokia pagrindinė dividendų strategijos idėja?', opts:['Investuoti į stabilias, dividendus mokančias įmones dėl pastovių pajamų','Investuoti tik į sparčiai augančias įmones','Prekiauti kasdien','Vengti visų akcijų'], correct:0, ex:'Dividendų strategija fokusuojasi į stabilias pajamas generuojančias įmones.'},
   {diff:'lengvas', q:'Kas yra dividendų reinvestavimas?', opts:['Gautų dividendų automatinis panaudojimas naujoms akcijoms pirkti','Dividendų atsisakymas','Dividendų perdavimas valstybei','Dividendų konvertavimas į obligacijas'], correct:0, ex:'Reinvestavimas reiškia dividendų panaudojimą naujoms investicijoms.'},
@@ -1278,7 +1262,8 @@ const M6_TOPICS = [
 ]},
 {id:'t4', title:'Indeksinis investavimas', theory:[
   {h:'Pagrindinė idėja', p:'Investuoti į fondą, sekantį platų rinkos indeksą (pvz. S&P 500), siekiant gauti vidutinę rinkos grąžą su minimaliais mokesčiais.'},
-  {h:'Kodėl tai populiaru', p:'Dauguma aktyviai valdomų fondų ilgainiui neaplenkia rinkos vidurkio po mokesčių, tad pasyvus sekimas dažnai racionalus pasirinkimas daugumai investuotojų.'}
+  {h:'Kodėl tai populiaru', p:'Dauguma aktyviai valdomų fondų ilgainiui neaplenkia rinkos vidurkio po mokesčių, tad pasyvus sekimas dažnai racionalus pasirinkimas daugumai investuotojų.'},
+  {h:'Praktinis pavyzdys', p:'Du fondai investuoja €20 000 30 metų su ta pačia 7% bruto grąža — vienas ima 0.1% metinį mokestį, kitas 1.2%. Šis, atrodytų mažas, skirtumas per 30 metų dėl sudėtinių palūkanų efekto sukuria žymiai didesnį atotrūkį galutinėje sumoje.'}
 ], quiz:[
   {diff:'lengvas', q:'Kokia pagrindinė indeksinio investavimo idėja?', opts:['Investuoti į fondą, sekantį platų rinkos indeksą','Rinktis pavienes akcijas kasdien','Prekiauti tik trumpalaikiu horizontu','Vengti bet kokio diversifikavimo'], correct:0, ex:'Indeksinis investavimas seka platų rinkos indeksą, o ne pavienes akcijas.'},
   {diff:'lengvas', q:'Koks pagrindinis indeksinio investavimo privalumas?', opts:['Žemi mokesčiai ir plati diversifikacija','Garantuotas didžiausias pelnas rinkoje','Nulinė rizika','Galimybė prekiauti be jokių mokesčių'], correct:0, ex:'Indeksiniai fondai paprastai turi žemus mokesčius ir plačią diversifikaciją.'},
@@ -1292,7 +1277,8 @@ const M6_TOPICS = [
 ]},
 {id:'t5', title:'DCA vs vienkartinė investicija', theory:[
   {h:'Kas yra DCA', p:'Dollar-cost averaging (DCA) — investuoti fiksuotą sumą reguliariais intervalais, nepriklausomai nuo rinkos kainos, vietoj bandymo „pataikyti“ į tinkamą momentą.'},
-  {h:'Svarbus niuansas', p:'Jei jau turite pinigų sumą, tyrimai (pvz. Vanguard) rodo, kad vienkartinis investavimas iš karto statistiškai laimi apie 2/3 atvejų, nes pinigai anksčiau patenka į rinką ir turi daugiau laiko augti. Tačiau DCA nauda daugumai žmonių yra elgsenos, ne matematinė — ji skatina nuoseklumą, o dauguma žmonių investuoja iš gaunamų pajamų, ne iš turimos sumos.'}
+  {h:'Svarbus niuansas', p:'Jei jau turite pinigų sumą, tyrimai (pvz. Vanguard) rodo, kad vienkartinis investavimas iš karto statistiškai laimi apie 2/3 atvejų, nes pinigai anksčiau patenka į rinką ir turi daugiau laiko augti. Tačiau DCA nauda daugumai žmonių yra elgsenos, ne matematinė — ji skatina nuoseklumą, o dauguma žmonių investuoja iš gaunamų pajamų, ne iš turimos sumos.'},
+  {h:'Praktinis pavyzdys', p:'Investuotojas paveldi €50 000. Statistiškai vienkartinis investavimas dažniau laimi, bet DCA (paskirstant per 12 mėnesių) gali būti racionalus pasirinkimas, jei investuotojui svarbesnis emocinis komfortas ir mažesnis regreto jausmas nei grynas matematinis optimalumas.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra dollar-cost averaging (DCA)?', opts:['Fiksuotos sumos investavimas reguliariais intervalais, nepriklausomai nuo kainos','Visos sumos investavimas vienu kartu','Investavimas tik krentant kainai','Investavimas tik kylant kainai'], correct:0, ex:'DCA reiškia reguliarų, fiksuotos sumos investavimą, nepriklausomai nuo kainos.'},
   {diff:'lengvas', q:'Jei jau turite pinigų sumą, ką dažniausiai rodo tyrimai apie vienkartinį investavimą vs DCA?', opts:['Vienkartinis investavimas statistiškai laimi apie 2/3 atvejų','DCA visada laimi 100% atvejų','Abu metodai visada duoda identišką rezultatą','Vienkartinis investavimas visada pralaimi'], correct:0, ex:'Tyrimai (pvz. Vanguard) rodo, kad turint sumą, vienkartinis investavimas dažniau statistiškai laimi.'},
@@ -1307,7 +1293,8 @@ const M6_TOPICS = [
 {id:'t6', title:'Day trading vs ilgalaikis investavimas — realybė', theory:[
   {h:'Statistika', p:'Akademiniai tyrimai (Brazilijos, Taivano, JAV rinkų) rodo, kad didžioji dauguma (70–97%, priklausomai nuo tyrimo) aktyvių day treiderių ilgainiui praranda pinigus.'},
   {h:'Kodėl taip nutinka', p:'Sandorių kaštai kaupiasi, konkuruojama su instituciniais investuotojais su geresne informacija/technologija, trūksta statistinio pranašumo, ir dažnos emocinės klaidos (per didelis pasitikėjimas, keršto prekyba).'},
-  {h:'Preživimo iliuzija', p:'Matomos tik retos sėkmės istorijos, o tūkstančiai pralaimėjusiųjų tyliai dingsta iš akiračio, iškreipdami bendrą įspūdį apie realias galimybes.'}
+  {h:'Preživimo iliuzija', p:'Matomos tik retos sėkmės istorijos, o tūkstančiai pralaimėjusiųjų tyliai dingsta iš akiračio, iškreipdami bendrą įspūdį apie realias galimybes.'},
+  {h:'Praktinis pavyzdys', p:'Brazilijos rinkos tyrimas parodė, kad iš žmonių, kurie day treidino 300+ dienų, 97% prarado pinigus, o tik 1,1% uždirbo daugiau nei minimalų atlyginimą. Socialiniuose tinkluose matote tą 1,1%, o ne 97%.'}
 ], quiz:[
   {diff:'lengvas', q:'Remiantis akademiniais tyrimais, kokia dalis aktyvių day treiderių ilgainiui praranda pinigus?', opts:['Didžioji dauguma (70%+)','Mažiau nei 5%','Lygiai pusė','Beveik niekas'], correct:0, ex:'Keli akademiniai tyrimai rodo, kad didžioji dauguma aktyvių day treiderių ilgainiui praranda pinigus.'},
   {diff:'lengvas', q:'Kas yra „preživimo iliuzija“ day trading kontekste?', opts:['Matomos tik sėkmės istorijos, o dauguma pralaimėjusiųjų lieka nematomi','Reiškinys, kai visi treideriai visada uždirba','Statistinis metodas pelnui skaičiuoti','Oficialus reguliavimo terminas'], correct:0, ex:'Matomos tik retos sėkmės istorijos, iškreipiančios bendrą įspūdį apie realias galimybes.'},
@@ -1321,7 +1308,8 @@ const M6_TOPICS = [
 ]},
 {id:'t7', title:'Kaip pasirinkti tinkamą strategiją sau', theory:[
   {h:'Asmeniniai veiksniai', p:'Strategijos pasirinkimas turėtų remtis jūsų rizikos tolerancija, laiko horizontu ir finansiniais tikslais (išmokta 2 modulyje) — nėra vienos „geriausios“ strategijos visiems.'},
-  {h:'Nuoseklumas', p:'Svarbu būti nuosekliam ir laikytis pasirinktos strategijos, o ne dažnai keisti kryptį dėl trumpalaikių emocijų (susieta su 7 moduliu apie psichologiją).'}
+  {h:'Nuoseklumas', p:'Svarbu būti nuosekliam ir laikytis pasirinktos strategijos, o ne dažnai keisti kryptį dėl trumpalaikių emocijų (susieta su 7 moduliu apie psichologiją).'},
+  {h:'Praktinis pavyzdys', p:'Investuotojas su ilgu horizontu ir aukšta rizikos tolerancija nuolat keičia strategiją kas kelis mėnesius, sekdamas rinkos madas. Tai prieštarauja nuoseklumo principui ir dažnai sukelia papildomus sandorių kaštus bei prastesnius rezultatus.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas turėtų nulemti, kokią investavimo strategiją pasirenkate?', opts:['Jūsų rizikos tolerancija, laiko horizontas ir finansiniai tikslai','Vien tik draugų nuomonė','Vien tik praėjusio mėnesio rinkos rezultatai','Atsitiktinis pasirinkimas'], correct:0, ex:'Strategijos pasirinkimas turėtų remtis asmeniniais veiksniais — rizikos tolerancija, horizontu ir tikslais.'},
   {diff:'lengvas', q:'Ar egzistuoja viena universaliai „geriausia“ strategija visiems?', opts:['Ne, tinkamiausia strategija priklauso nuo asmeninės situacijos','Taip, indeksinis investavimas visada geriausias visiems','Taip, day trading visada geriausias visiems','Taip, value investing visada geriausias visiems'], correct:0, ex:'Tinkamiausia strategija priklauso nuo individualių aplinkybių.'},
@@ -1373,7 +1361,8 @@ const M6_PRACTICE_ITEMS = {
 const M7_TOPICS = [
 {id:'t1', title:'Baimė ir godumas', theory:[
   {h:'Dvi pagrindinės emocijos', p:'Baimė skatina parduoti per anksti arba per vėlai panikuojant, praleisti geras galimybes dėl per didelio atsargumo. Godumas skatina pirkti impulsyviai, tikintis greito pelno, arba per ilgai laikyti poziciją.'},
-  {h:'Kodėl svarbu atpažinti', p:'Baimė ir godumas laikomi pagrindiniais investuotojų sprendimų iškraipymo šaltiniais — svarbu atpažinti, kada sprendimą priima emocija, o ne analizė.'}
+  {h:'Kodėl svarbu atpažinti', p:'Baimė ir godumas laikomi pagrindiniais investuotojų sprendimų iškraipymo šaltiniais — svarbu atpažinti, kada sprendimą priima emocija, o ne analizė.'},
+  {h:'Praktinis pavyzdys', p:'Investuotojas laiko nuostolingą poziciją per ilgai, tikėdamasis, kad kaina „atsigaus“, nors fundamentai pablogėjo. Tai iliustruoja nenoro pripažinti nuostolio šališkumą, dažnai paremtą baime formaliai užfiksuoti nuostolį.'}
 ], quiz:[
   {diff:'lengvas', q:'Kokios dvi pagrindinės emocijos dažniausiai iškraipo investavimo sprendimus?', opts:['Baimė ir godumas','Nuobodulys ir smalsumas','Pasitikėjimas ir abejingumas','Meilė ir neapykanta'], correct:0, ex:'Baimė ir godumas laikomi pagrindiniais emociniais investavimo sprendimų iškraipymo šaltiniais.'},
   {diff:'lengvas', q:'Ką paprastai skatina baimė investuojant?', opts:['Parduoti per anksti arba panikuoti per vėlai','Visada pirkti daugiau','Ignoruoti visas naujienas','Investuoti tik į obligacijas'], correct:0, ex:'Baimė gali paskatinti tiek per ankstyvą pardavimą, tiek panišką pardavimą krizės metu.'},
@@ -1387,7 +1376,8 @@ const M7_TOPICS = [
 ]},
 {id:'t2', title:'FOMO', theory:[
   {h:'Kas yra FOMO', p:'FOMO (baimė praleisti galimybę) — polinkis pirkti impulsyviai, matant, kad kiti sparčiai uždirba, dažnai be savarankiškos analizės.'},
-  {h:'Kodėl tai rizikinga', p:'FOMO dažnai veda prie pirkimo tuo metu, kai kaina jau nepagrįstai aukšta, po didelio kilimo.'}
+  {h:'Kodėl tai rizikinga', p:'FOMO dažnai veda prie pirkimo tuo metu, kai kaina jau nepagrįstai aukšta, po didelio kilimo.'},
+  {h:'Praktinis pavyzdys', p:'Kriptovaliuta per savaitę pakilo 300%, draugai giriasi pelnu. Investuotojas skubiai investuoja didelę savo santaupų dalį, nesigilindamas — tai klasikinis FOMO pavyzdys, dažnai reiškiantis pirkimą arti kainos viršūnės.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra FOMO?', opts:['Baimė praleisti galimybę, skatinanti impulsyvius pirkimus','Finansinės analizės metodika','Ilgalaikio investavimo strategija','Mokesčių sumažinimo būdas'], correct:0, ex:'FOMO — baimė praleisti galimybę, skatinanti pirkti be analizės.'},
   {diff:'lengvas', q:'Kada FOMO dažniausiai pasireiškia?', opts:['Kai matoma, kad kiti sparčiai uždirba iš tam tikros investicijos','Kai rinka rami ir stabili','Kai visos akcijos pigios','Kai investuotojas turi ilgą laiko horizontą'], correct:0, ex:'FOMO dažniausiai kyla matant kitų sparčią sėkmę.'},
@@ -1401,7 +1391,8 @@ const M7_TOPICS = [
 ]},
 {id:'t3', title:'Paninis pardavimas', theory:[
   {h:'Kas tai', p:'Kai rinka staiga krenta, daugelis investuotojų parduoda iš baimės, užfiksuodami nuostolį tiksliai tuo metu, kai kaina žemiausia.'},
-  {h:'Kodėl tai žalinga', p:'Istoriškai rinkos dažnai atsigauna po kritimų — paniškas pardavimas kritimo dugne užkerta kelią dalyvauti atsigavime.'}
+  {h:'Kodėl tai žalinga', p:'Istoriškai rinkos dažnai atsigauna po kritimų — paniškas pardavimas kritimo dugne užkerta kelią dalyvauti atsigavime.'},
+  {h:'Praktinis pavyzdys', p:'Rinka krenta 30% per mėnesį. Investuotojas, sekęs iš anksto nustatytą planą, nieko nekeičia. Kitas, be plano, parduoda viską. Po metų rinka atsigauna — disciplina dažnai duoda geresnį rezultatą nei impulsyvi reakcija.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra paninis pardavimas?', opts:['Pardavimas iš baimės staigaus rinkos kritimo metu','Planuotas, ramus pardavimas','Pardavimas po ilgo, apgalvoto vertinimo','Pardavimas dėl mokesčių priežasčių'], correct:0, ex:'Paninis pardavimas — impulsyvus pardavimas iš baimės kritimo metu.'},
   {diff:'lengvas', q:'Kada dažniausiai įvyksta paninis pardavimas?', opts:['Staigaus, didelio rinkos kritimo metu','Kai rinka rami ir stabili','Kai kainos ilgą laiką kyla','Prieš IPO'], correct:0, ex:'Panika dažniausiai kyla staigaus, didelio kritimo metu.'},
@@ -1415,7 +1406,8 @@ const M7_TOPICS = [
 ]},
 {id:'t4', title:'Patvirtinimo šališkumas', theory:[
   {h:'Kas tai', p:'Patvirtinimo šališkumas (confirmation bias) — polinkis ieškoti ir pastebėti informaciją, patvirtinančią jau turimą nuomonę, ignoruojant prieštaraujančią informaciją.'},
-  {h:'Kaip tai pasireiškia investuojant', p:'Investuotojas gali ieškoti tik teigiamų naujienų apie jau turimą akciją, ignoruodamas įspėjamuosius ženklus.'}
+  {h:'Kaip tai pasireiškia investuojant', p:'Investuotojas gali ieškoti tik teigiamų naujienų apie jau turimą akciją, ignoruodamas įspėjamuosius ženklus.'},
+  {h:'Praktinis pavyzdys', p:'Investuotojas su didele pozicija, pasirodžius blogoms naujienoms, ieško forumuose nuomonių, kurios „paneigtų“ tas naujienas, ignoruodamas analitikų įspėjimus. Toks selektyvus ieškojimas gali užtęsti nuostolingos pozicijos laikymą.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra patvirtinimo šališkumas?', opts:['Polinkis ieškoti informacijos, patvirtinančios jau turimą nuomonę','Polinkis visada abejoti savo sprendimais','Objektyvus, subalansuotas informacijos vertinimas','Statistinis analizės metodas'], correct:0, ex:'Patvirtinimo šališkumas — polinkis ieškoti patvirtinančios, ne prieštaraujančios informacijos.'},
   {diff:'lengvas', q:'Kaip patvirtinimo šališkumas gali pasireikšti investuojant?', opts:['Ieškoma tik teigiamų naujienų apie jau turimą investiciją, ignoruojant įspėjimus','Investuotojas visada ieško vien neigiamų naujienų','Investuotojas niekada neturi jokios nuomonės','Šališkumas neturi jokio poveikio investavimui'], correct:0, ex:'Investuotojas gali sąmoningai ar nesąmoningai ignoruoti prieštaraujančią informaciją apie turimą poziciją.'},
@@ -1429,7 +1421,8 @@ const M7_TOPICS = [
 ]},
 {id:'t5', title:'Bandos mentalitetas', theory:[
   {h:'Kas tai', p:'Bandos mentalitetas (herd mentality) — polinkis sekti daugumos elgesį, net jei tai prieštarauja savarankiškai analizei.'},
-  {h:'Poveikis rinkoms', p:'Rinkos „burbulai“ ir staigūs kritimai dažnai sustiprėja būtent dėl bandos elgesio — žmonės perka, nes kiti perka, arba parduoda, nes kiti parduoda.'}
+  {h:'Poveikis rinkoms', p:'Rinkos „burbulai“ ir staigūs kritimai dažnai sustiprėja būtent dėl bandos elgesio — žmonės perka, nes kiti perka, arba parduoda, nes kiti parduoda.'},
+  {h:'Praktinis pavyzdys', p:'Rinkos burbulo metu beveik visi aplinkiniai investuoja į tą pačią „karštą“ temą, o analitikai perspėja apie pervertinimą. Matomas kitų sėkmingas elgesys psichologiškai atrodo įtikinamesnis nei abstraktus perspėjimas — todėl sunku pasitraukti ar neinvestuoti.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra bandos mentalitetas investuojant?', opts:['Polinkis sekti daugumos elgesį, ne savarankišką analizę','Polinkis visada prieštarauti daugumai','Statistinis analizės metodas','Investavimo strategijos tipas su fiksuota grąža'], correct:0, ex:'Bandos mentalitetas — sekimas daugumos elgesio, ne savarankiška analize.'},
   {diff:'lengvas', q:'Kaip bandos mentalitetas gali sustiprinti rinkos burbulus?', opts:['Žmonės perka vien todėl, kad kiti perka, dirbtinai keldami kainą virš pagrįstos vertės','Bandos mentalitetas visada sumažina kainas','Jis neturi jokios įtakos rinkos kainoms','Jis visada padeda rinkai išlikti racionaliai įvertintai'], correct:0, ex:'Sekimas paskui daugumą gali dirbtinai kelti kainas virš pagrįstos vertės.'},
@@ -1443,7 +1436,8 @@ const M7_TOPICS = [
 ]},
 {id:'t6', title:'Nuostolio vengimas', theory:[
   {h:'Kas tai', p:'Nuostolio vengimas (loss aversion) — psichologinis reiškinys, kai nuostolio skausmas jaučiamas stipriau nei lygiaverčio pelno džiaugsmas.'},
-  {h:'Praktinė pasekmė', p:'Investuotojai dažnai per ilgai laiko nuostolingas pozicijas (vengdami „užfiksuoti“ nuostolį) ir per anksti parduoda pelningas (norėdami „užfiksuoti“ pelną).'}
+  {h:'Praktinė pasekmė', p:'Investuotojai dažnai per ilgai laiko nuostolingas pozicijas (vengdami „užfiksuoti“ nuostolį) ir per anksti parduoda pelningas (norėdami „užfiksuoti“ pelną).'},
+  {h:'Praktinis pavyzdys', p:'Investuotojas turi Akciją X (+40% pelno) ir Akciją Y (-25% nuostolio). Jis parduoda X „užsifiksuoti“ pelną, bet laiko Y, tikėdamasis atsigavimo — klasikinis nuostolio vengimo pavyzdys, ignoruojantis kiekvienos pozicijos realius fundamentus.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra nuostolio vengimas?', opts:['Polinkis jausti nuostolio skausmą stipriau nei lygiaverčio pelno džiaugsmą','Polinkis visada ieškoti didesnės rizikos','Investavimo strategijos tipas','Statistinis rizikos matas'], correct:0, ex:'Nuostolio vengimas — psichologinis polinkis stipriau jausti nuostolį nei lygiavertį pelną.'},
   {diff:'lengvas', q:'Kaip nuostolio vengimas paprastai veikia sprendimą parduoti nuostolingą poziciją?', opts:['Skatina per ilgai laikyti ją, vengiant „užfiksuoti“ nuostolį','Skatina iškart parduoti bet kokį nuostolį','Neturi jokios įtakos sprendimams','Visada skatina pirkti dar daugiau'], correct:0, ex:'Nuostolio vengimas dažnai skatina per ilgai laikyti nuostolingas pozicijas.'},
@@ -1457,7 +1451,8 @@ const M7_TOPICS = [
 ]},
 {id:'t7', title:'Disciplina ir investavimo planas', theory:[
   {h:'Kas yra investavimo planas', p:'Iš anksto apgalvotas dokumentas/strategija, apibrėžianti tikslus, rizikos toleranciją, strategiją ir taisykles, kada pirkti/parduoti.'},
-  {h:'Disciplinos svarba', p:'Plano laikymasis nepaisant trumpalaikių emocijų laikomas vienu svarbiausių ilgalaikės sėkmės veiksnių, dažnai svarbesniu už patį pasirinktą strategiją.'}
+  {h:'Disciplinos svarba', p:'Plano laikymasis nepaisant trumpalaikių emocijų laikomas vienu svarbiausių ilgalaikės sėkmės veiksnių, dažnai svarbesniu už patį pasirinktą strategiją.'},
+  {h:'Praktinis pavyzdys', p:'Du investuotojai turi identišką strategiją popieriuje, bet vienas jos griežtai laikosi, kitas nuolat nukrypsta dėl emocijų. Realiai įgyvendinamas, net vidutinis planas dažnai duoda geresnius rezultatus nei puikus, bet nesilaikomas planas.'}
 ], quiz:[
   {diff:'lengvas', q:'Kas yra investavimo planas?', opts:['Iš anksto apibrėžti tikslai, strategija ir taisyklės investavimui','Vienkartinis pirkimo sandoris','Brokerio rekomendacija','Metinė mokesčių deklaracija'], correct:0, ex:'Investavimo planas apibrėžia tikslus, strategiją ir taisykles iš anksto.'},
   {diff:'lengvas', q:'Kas yra disciplina investuojant?', opts:['Plano laikymasis nepaisant trumpalaikių emocijų','Dažnas strategijos keitimas','Prekyba be jokio plano','Emocijų sekimas priimant sprendimus'], correct:0, ex:'Disciplina — plano laikymasis nepaisant emocinio spaudimo.'},
@@ -1566,6 +1561,105 @@ const SIM_EVENTS = [
   {companyId:null, text:'Teigiamos ekonomikos naujienos pakėlė visą rinką.', mult:1.05, market:true}
 ];
 
+
+/* ============ MODULE 9 CONTENT — Kriptovaliutos ============ */
+
+const M9_TOPICS = [
+{id:'t1', title:'Kas yra kriptovaliuta?', theory:[
+  {h:'Apibrėžimas', p:'Kriptovaliuta — skaitmeninis turtas, veikiantis decentralizuotame tinkle (blokų grandinėje), be centrinio banko ar vyriausybės kontrolės.'},
+  {h:'Blokų grandinė (blockchain)', p:'Blokų grandinė — paskirstyta duomenų bazė, viešai ir nekeičiamai įrašanti visus sandorius, tikrinama daugelio nepriklausomų tinklo dalyvių vienu metu. Būtent šis paskirstytas, daugkartinis tikrinimas apsunkina bet kokį bandymą pakeisti jau įrašytus duomenis.'},
+  {h:'Kuo skiriasi nuo tradicinių valiutų', p:'Kriptovaliuta neturi centrinio emitento, jos vertė nustatoma vien rinkos pasiūlos ir paklausos, ir ji dažnai būna itin volatili, palyginti su tradiciniais aktyvais.'},
+  {h:'Kodėl kriptovaliutos vertę sunkiau pagrįsti', p:'Skirtingai nuo akcijos, kuri turi pelną, turtą ir pinigų srautus (3 modulis), kriptovaliuta dažnai neturi tokių fundamentalių rodiklių. Jos vertė remiasi labiau rinkos lūkesčiais, naudingumu ir pasitikėjimu, o ne apskaičiuojama iš finansinių ataskaitų.'}
+], quiz:[
+  {diff:'lengvas', q:'Kas yra kriptovaliuta?', opts:['Skaitmeninis turtas, veikiantis decentralizuotame tinkle be centrinio banko kontrolės','Popierinis valstybės išleistas vertybinis popierius','Banko sąskaitos rūšis su fiksuota palūkanų norma','Fizinė moneta, kaldinama valstybės'], correct:0, ex:'Kriptovaliuta yra skaitmeninis turtas be centrinės institucijos kontrolės.'},
+  {diff:'lengvas', q:'Kas yra blokų grandinė (blockchain)?', opts:['Paskirstyta, viešai tikrinama duomenų bazė, įrašanti sandorius','Vienos įmonės privatus serveris','Popierinis sandorių žurnalas banke','Vyriausybės išduota licencija prekybai'], correct:0, ex:'Blokų grandinė yra paskirstyta duomenų bazė, viešai tikrinama tinklo dalyvių.'},
+  {diff:'lengvas', q:'Kas kontroliuoja tradicinę valiutą, pavyzdžiui, eurą?', opts:['Centrinis bankas','Atsitiktinis interneto tinklas','Privatus asmuo','Niekas jos nekontroliuoja'], correct:0, ex:'Tradicines valiutas kontroliuoja centriniai bankai.'},
+  {diff:'vidutinis', q:'Kuo kriptovaliuta iš esmės skiriasi nuo tradicinės valiutos?', opts:['Ji neturi centrinio emitento ar banko, kontroliuojančio jos išleidimą','Ji visada teisiškai draudžiama visose šalyse','Ji visada turi fiksuotą, nekintančią vertę','Ją gali išleisti tik viena pasaulinė institucija'], correct:0, ex:'Pagrindinis skirtumas — kriptovaliuta neturi centrinio emitento, kontroliuojančio jos išleidimą.'},
+  {diff:'vidutinis', q:'Kodėl blokų grandinės įrašai laikomi sunkiai pakeičiamais?', opts:['Jie tikrinami ir saugomi daugelyje decentralizuotų tinklo mazgų vienu metu','Juos gali keisti tik viena centrinė institucija','Jie automatiškai ištrinami kas savaitę','Juos tikrina tik vienas asmuo pasaulyje'], correct:0, ex:'Paskirstytas patikrinimas daugelyje mazgų apsunkina įrašų pakeitimą.'},
+  {diff:'vidutinis', q:'Kas paprastai nustato kriptovaliutos kainą rinkoje?', opts:['Pirkėjų ir pardavėjų pasiūla bei paklausa, panašiai kaip akcijoms','Vien tik vyriausybės nustatytas fiksuotas tarifas','Vien tik kriptovaliutos kūrėjo sprendimas','Kaina niekada nesikeičia po išleidimo'], correct:0, ex:'Kriptovaliutos kaina, kaip ir akcijų, formuojasi iš pasiūlos ir paklausos rinkoje.'},
+  {diff:'sunkus', q:'Kodėl kriptovaliutų vertė dažnai laikoma sunkiau pagrindžiama nei akcijos, turinčios pelną ir turtą?', opts:['Kriptovaliuta dažnai neturi pinigų srautų, pelno ar apčiuopiamo turto, kuriuo remtis fundamentaliam vertinimui','Kriptovaliuta visada turi didesnį pelną nei bet kuri akcija','Akcijos niekada neturi jokios fundamentalios vertės','Kriptovaliutos vertė visada lygi jos kūrimo kaštams'], correct:0, ex:'Skirtingai nei akcijos, kriptovaliuta dažnai neturi pelno ar turto, kuriuo būtų galima pagrįsti fundamentalią vertę.'},
+  {diff:'sunkus', multi:true, q:'Kurie teiginiai apie kriptovaliutas yra teisingi?', opts:['Jos veikia decentralizuotame tinkle be centrinio banko','Blokų grandinės įrašai yra viešai patikrinami','Visos kriptovaliutos garantuoja fiksuotą, nekintančią vertę','Kriptovaliutų reguliavimas identiškas visame pasaulyje'], correct:[0,1], ex:'Kriptovaliutos veikia decentralizuotai su viešai tikrinamais įrašais — bet jos negarantuoja fiksuotos vertės, o reguliavimas smarkiai skiriasi tarp šalių.'}
+]},
+{id:'t2', title:'Kriptovaliutų rizika ir reguliavimas', theory:[
+  {h:'Ekstremalus volatilumas', p:'Kriptovaliutų kainos gali svyruoti dešimtimis procentų per vieną dieną — žymiai daugiau nei dauguma tradicinių aktyvų.'},
+  {h:'Reguliavimo neapibrėžtumas', p:'Skirtingos šalys taiko labai skirtingas taisykles kriptovaliutoms, o reguliavimas sparčiai keičiasi, kas gali staigiai paveikti kainą.'},
+  {h:'Saugojimo rizika', p:'Kriptovaliutos saugomos skaitmeninėse „piniginėse“ — prarasti prieigos raktai ar biržos įsilaužimai gali reikšti negrįžtamą turto praradimą.'},
+  {h:'Praktinis pavyzdys', p:'Investuotojas su labai trumpu laiko horizontu (3 metai iki namo pirkimo) investuoja 25% savo portfelio į kriptovaliutą. Aukštas volatilumas kelia riziką, kad tiksliai reikiamu momentu vertė bus laikinai nukritusi — netinkama strategija tokiam trumpam, svarbiam tikslui.'}
+], quiz:[
+  {diff:'lengvas', q:'Kaip kriptovaliutų volatilumas paprastai lyginasi su tradicinių akcijų?', opts:['Kriptovaliutos paprastai daug labiau volatilios','Kriptovaliutos paprastai daug mažiau volatilios','Volatilumas visada identiškas abiem','Kriptovaliutos niekada nesvyruoja'], correct:0, ex:'Kriptovaliutos paprastai turi žymiai didesnį volatilumą nei tradicinės akcijos.'},
+  {diff:'lengvas', q:'Kur paprastai saugomos kriptovaliutos?', opts:['Skaitmeninėse „piniginėse“','Popieriniuose banko čekiuose','Fiziniuose seifuose kaip monetos','Jos apskritai nereikalauja jokio saugojimo'], correct:0, ex:'Kriptovaliutos saugomos skaitmeninėse piniginėse su privačiais raktais.'},
+  {diff:'lengvas', q:'Ar kriptovaliutų reguliavimas vienodas visame pasaulyje?', opts:['Ne, jis labai skiriasi tarp šalių','Taip, visos šalys taiko identiškas taisykles','Reguliavimo apskritai niekur nėra','Reguliavimas taikomas tik vienai valstybei pasaulyje'], correct:0, ex:'Skirtingos šalys taiko labai skirtingas kriptovaliutų reguliavimo taisykles.'},
+  {diff:'vidutinis', q:'Kodėl reguliavimo neapibrėžtumas gali staigiai paveikti kriptovaliutos kainą?', opts:['Naujos taisyklės ar draudimai gali staiga pakeisti investuotojų galimybes ar norą prekiauti','Reguliavimas niekada neturi jokios įtakos kainai','Reguliavimas visada iš anksto žinomas metais į priekį','Reguliavimas veikia tik akcijas, ne kriptovaliutas'], correct:0, ex:'Netikėti reguliavimo pokyčiai gali staiga pakeisti rinkos dalyvių elgesį ir kainą.'},
+  {diff:'vidutinis', q:'Kokia rizika kyla praradus prieigos raktus (private keys) į skaitmeninę piniginę?', opts:['Galimas negrįžtamas viso turto praradimas be jokio atkūrimo būdo','Bankas visada gali atkurti prieigą per kelias dienas','Rizikos nėra, raktus visada galima atstatyti nemokamai','Turtas automatiškai pervedamas į naują piniginę'], correct:0, ex:'Praradus prieigos raktus, kriptovaliuta paprastai negrįžtamai prarandama.'},
+  {diff:'vidutinis', q:'Kodėl biržos įsilaužimai laikomi specifine kriptovaliutų rizika?', opts:['Jei kriptovaliuta saugoma biržoje, o birža nulaužiama, investuotojas gali negrįžtamai prarasti savo turtą','Biržos įsilaužimai niekada nepaveikia investuotojų turto','Biržos yra visiškai apsaugotos nuo bet kokių įsilaužimų','Ši rizika taikoma tik akcijų biržoms, ne kriptovaliutoms'], correct:0, ex:'Laikant kriptovaliutą biržoje, jos įsilaužimas gali reikšti negrįžtamą turto praradimą.'},
+  {diff:'sunkus', q:'Kodėl itin aukštas volatilumas reiškia, kad kriptovaliuta netinka investuotojui su labai trumpu laiko horizontu ir žema rizikos tolerancija?', opts:['Didelis svyravimas kelia riziką, kad tiksliai prireikus pinigų vertė gali būti laikinai smarkiai nukritusi','Volatilumas neturi jokios įtakos trumpo horizonto investuotojams','Trumpas laiko horizontas visada reikalauja didžiausio volatilumo','Rizikos tolerancija niekada nesusijusi su volatilumu'], correct:0, ex:'Didelis svyravimas ypač pavojingas, kai laiko atsigauti po nuosmukio nėra daug.'},
+  {diff:'sunkus', multi:true, q:'Kurie teiginiai apie kriptovaliutų riziką yra teisingi?', opts:['Kainos gali svyruoti dešimtimis procentų per dieną','Reguliavimas gali staiga pasikeisti ir paveikti kainą','Prarastus prieigos raktus visada galima atkurti per banką','Biržos įsilaužimai niekada neturi įtakos investuotojo turtui'], correct:[0,1], ex:'Kriptovaliutos pasižymi itin aukštu volatilumu ir reguliavimo neapibrėžtumu — tačiau prarastų raktų banke atkurti negalima, o biržos įsilaužimai realiai gali kainuoti investuotojui turtą.'}
+]},
+{id:'t3', title:'Kriptovaliutų paskirtis ir tipai', theory:[
+  {h:'Skirtingi tikslai', p:'Kai kurios kriptovaliutos kuriamos kaip vertės saugykla (pvz. Bitcoin dažnai lyginamas su „skaitmeniniu auksu“), kitos — kaip platforma programoms ir išmaniosioms sutartims vykdyti (pvz. Ethereum), trečios — kaip mokėjimo priemonė (utility token) konkrečioje sistemoje.'},
+  {h:'Kaip atskirti tikslą', p:'Verta pažiūrėti, kokią problemą projektas sprendžia, kas jį realiai naudoja, ir ar jo vertė susijusi su realiu naudojimu, ar vien spekuliacija.'},
+  {h:'Įspėjimas', p:'Daugelis projektų neturi aiškaus, realaus naudojimo atvejo — jų vertė grindžiama vien lūkesčiais ir spekuliacija, o ne realia technologija ar paslauga.'},
+  {h:'Praktinis pavyzdys', p:'Investuotojas mato du projektus: vienas turi aiškų techninį sprendimą realiai problemai, kitas neturi jokio aiškaus tikslo, bet kaina sparčiai kyla. Kainos kilimas savaime negarantuoja realios vertės — antrasis projektas gali būti grynai spekuliacinis.'}
+], quiz:[
+  {diff:'lengvas', q:'Kokia kriptovaliuta dažnai lyginama su „skaitmeniniu auksu“ kaip vertės saugykla?', opts:['Bitcoin','Ethereum','Visos kriptovaliutos vienodai','Nė viena kriptovaliuta'], correct:0, ex:'Bitcoin dažniausiai lyginamas su skaitmeniniu auksu dėl savo, kaip vertės saugyklos, pozicionavimo.'},
+  {diff:'lengvas', q:'Kokia kriptovaliuta žinoma kaip platforma išmaniosioms sutartims (smart contracts) vykdyti?', opts:['Ethereum','Vien tik Bitcoin','Vien tik auksas','Nė viena iš šių'], correct:0, ex:'Ethereum plačiai žinoma kaip platforma programoms ir išmaniosioms sutartims vykdyti.'},
+  {diff:'lengvas', q:'Kas yra „utility token“?', opts:['Tokenas, skirtas naudoti kaip mokėjimo priemonė konkrečioje sistemoje ar platformoje','Vien tik popierinis vertybinis popierius','Valstybės išleista valiuta','Bankinis indėlio sertifikatas'], correct:0, ex:'Utility token skirtas naudoti konkrečios platformos ar sistemos viduje.'},
+  {diff:'vidutinis', q:'Kodėl svarbu suprasti, kokią problemą sprendžia konkretus kriptoprojektas prieš investuojant?', opts:['Tai padeda įvertinti, ar projekto vertė grindžiama realiu naudojimu, ar vien spekuliacija','Tai visiškai nesvarbu priimant investavimo sprendimą','Visi projektai sprendžia identišką problemą','Problemos supratimas garantuoja pelną'], correct:0, ex:'Projekto tikslo supratimas padeda atskirti realų naudojimą nuo grynos spekuliacijos.'},
+  {diff:'vidutinis', q:'Kuo skiriasi „vertės saugyklos“ tikslas nuo „mokėjimo platformos“ tikslo?', opts:['Vertės saugykla siekia išlaikyti/didinti vertę laikui bėgant, mokėjimo platforma siekia palengvinti sandorius ar programas','Šie du tikslai visada identiški','Vertės saugykla visada reiškia didesnę riziką nei mokėjimo platforma','Mokėjimo platforma niekada nesusijusi su technologija'], correct:0, ex:'Šie du tikslai atspindi skirtingas projekto paskirtis ir vertinimo kriterijus.'},
+  {diff:'vidutinis', q:'Kodėl daugelis kriptoprojektų neturi aiškaus, realaus naudojimo atvejo?', opts:['Daugelis kuriami vien spekuliaciniam susidomėjimui, be realaus techninio ar verslo poreikio','Visi kriptoprojektai teisiškai privalo turėti realų naudojimą','Realus naudojimas visada garantuotas kiekvienam projektui','Tai neįmanoma techniškai jokiam projektui'], correct:0, ex:'Nemažai projektų kuriami daugiau spekuliaciniam susidomėjimui nei realiam poreikiui spręsti.'},
+  {diff:'sunkus', q:'Investuotojas mato du projektus: vienas turi aiškų techninį sprendimą realiai problemai, kitas neturi jokio aiškaus tikslo, bet kaina sparčiai kyla. Ką tai geriausiai iliustruoja apie riziką?', opts:['Kainos kilimas savaime negarantuoja realios vertės — antrasis projektas gali būti grynai spekuliacinis, nepriklausomai nuo kainos judėjimo','Kainos kilimas visada įrodo, kad projektas turi realų tikslą','Abu projektai vienodai patikimi, nes abu kriptovaliutos','Tikslo aiškumas neturi jokios įtakos rizikai'], correct:0, ex:'Kainos kilimas gali vykti ir be jokio realaus pagrindo — tai nėra patikimybės įrodymas.'},
+  {diff:'sunkus', multi:true, q:'Kurie teiginiai apie kriptovaliutų paskirtį yra teisingi?', opts:['Skirtingi projektai gali turėti labai skirtingus tikslus','Kai kurie tokenai skirti naudoti konkrečiose platformose','Kainos kilimas visada įrodo realų naudojimą','Visi kriptoprojektai turi identišką paskirtį'], correct:[0,1], ex:'Kriptoprojektai tikrai skiriasi savo paskirtimi, o kai kurie tokenai skirti konkrečiam platformos naudojimui — tačiau kainos kilimas savaime neįrodo realaus naudojimo, ir projektai jokiu būdu nėra identiški.'}
+]},
+{id:'t4', title:'Kaip skaityti kriptovaliutos „baltąją knygą“ (whitepaper)', theory:[
+  {h:'Kas yra whitepaper', p:'Whitepaper — techninis-verslo dokumentas, kuriame projekto kūrėjai paaiškina, kokią problemą sprendžia, kaip veikia technologija, ir kaip veikia tokeno ekonomika (tokenomics).'},
+  {h:'Kas yra tokenomics', p:'Tokenomics apibūdina, kaip tokenai kuriami, paskirstomi ir naudojami projekto viduje — pvz., bendras tokenų kiekis, kiek jų priklauso kūrėjams, kiek investuotojams, ir kokiu tempu nauji tokenai patenka į apyvartą.'},
+  {h:'Ką tikrinti', p:'Verta patikrinti: ar aiškiai apibrėžta problema ir sprendimas, kas yra komanda (ar jie viešai identifikuojami), kaip paskirstomi tokenai, ir ar egzistuoja realus veikiantis produktas, ar tik idėja popieriuje.'},
+  {h:'Kur rasti', p:'Whitepaper dažniausiai skelbiamas projekto oficialioje svetainėje. Informaciniai portalai, tokie kaip CoinMarketCap ar CoinGecko, taip pat dažnai turi tiesioginę nuorodą į whitepaper prie kiekvieno kriptoprojekto įrašo.'}
+], quiz:[
+  {diff:'lengvas', q:'Kas yra kriptovaliutos „whitepaper“?', opts:['Techninis-verslo dokumentas, paaiškinantis projekto problemą, technologiją ir tokeno ekonomiką','Valstybės išduotas prekybos leidimas','Banko sąskaitos išrašas','Biržos kotiruočių lentelė'], correct:0, ex:'Whitepaper yra dokumentas, paaiškinantis projekto tikslą, technologiją ir tokenomiką.'},
+  {diff:'lengvas', q:'Kur dažniausiai galima rasti projekto whitepaper?', opts:['Projekto oficialioje svetainėje','Vien tik spausdintoje knygoje bibliotekoje','Vien tik banko skyriuje','Whitepaper niekada nėra viešai prieinamas'], correct:0, ex:'Whitepaper paprastai skelbiamas viešai projekto oficialioje svetainėje.'},
+  {diff:'lengvas', q:'Kokiuose informaciniuose portaluose dažnai yra nuorodos į whitepaper prie kiekvieno kriptoprojekto?', opts:['CoinMarketCap arba CoinGecko','Vien tik vyriausybės svetainėse','Vien tik akcijų biržos svetainėje','Tokių portalų apskritai nėra'], correct:0, ex:'CoinMarketCap ir CoinGecko dažnai pateikia tiesiogines nuorodas į projektų whitepaper.'},
+  {diff:'vidutinis', q:'Kodėl svarbu patikrinti, ar projekto komanda yra viešai identifikuojama?', opts:['Anonimiška komanda gali sunkiau būti patraukta atsakomybėn, jei projektas pasirodo nesąžiningas','Komandos identifikavimas niekada nesvarbus vertinant projektą','Anonimiškumas visada reiškia didesnį saugumą investuotojui','Visi projektai teisiškai privalo turėti viešą komandą'], correct:0, ex:'Viešai identifikuojama komanda suteikia daugiau atskaitomybės nei anonimiška.'},
+  {diff:'vidutinis', q:'Kas yra „tokenomics“?', opts:['Kaip tokenai kuriami, paskirstomi ir naudojami projekto ekonomikoje','Vien tik tokeno kaina biržoje šiuo momentu','Vien tik tokeno spalva ir logotipas','Valstybės nustatytas tokeno mokestis'], correct:0, ex:'Tokenomics apibūdina tokeno kūrimo, paskirstymo ir naudojimo taisykles projekto viduje.'},
+  {diff:'vidutinis', q:'Kodėl vien gražiai parašytas whitepaper savaime negarantuoja projekto sėkmės ar sąžiningumo?', opts:['Whitepaper yra tik dokumentas su pažadais, jo turinys neįrodo, kad technologija realiai veikia ar bus įgyvendinta','Gražus dokumentas visada reiškia patikimą projektą','Whitepaper teisiškai privalo būti tikslus visose šalyse','Whitepaper egzistavimas automatiškai reiškia sėkmę'], correct:0, ex:'Whitepaper yra pažadų dokumentas — jo kokybė savaime neįrodo realaus įgyvendinimo ar sąžiningumo.'},
+  {diff:'sunkus', q:'Whitepaper žada revoliucinę technologiją, bet projektas neturi jokio veikiančio produkto, viešos kodo saugyklos (pvz. GitHub) ar identifikuojamos komandos. Ką tai turėtų signalizuoti atsargiam investuotojui?', opts:['Didelius perspėjimo ženklus, rodančius galimai nepatikimą ar apgaulingą projektą','Kad projektas tikrai bus sėkmingas ateityje','Kad tokie požymiai visiškai nesvarbūs vertinant projektą','Kad reikia iškart investuoti, kol kaina dar žema'], correct:0, ex:'Veikiančio produkto, viešo kodo ir identifikuojamos komandos nebuvimas kartu yra reikšmingi perspėjimo ženklai.'},
+  {diff:'sunkus', multi:true, q:'Kurie teiginiai apie whitepaper skaitymą yra teisingi?', opts:['Verta patikrinti, ar komanda viešai identifikuojama','Verta patikrinti tokenų paskirstymo struktūrą','Gražus dizainas visada įrodo projekto patikimumą','Whitepaper egzistavimas garantuoja projekto sėkmę'], correct:[0,1], ex:'Komandos identifikavimas ir tokenų paskirstymo patikrinimas yra svarbūs vertinimo žingsniai — tačiau nei dizainas, nei vien whitepaper egzistavimas negarantuoja patikimumo ar sėkmės.'}
+]}
+];
+
+const M9_CASE_STUDIES = [
+{
+  title:'Atvejo analizė 1: Kriptovaliutos vieta portfelyje',
+  scenario:'Investuotojas turi €8000 portfelį: €6000 diversifikuotame akcijų ETF, €2000 nori investuoti į kriptovaliutą. Jo laiko horizontas — 3 metai iki namo pirkimo įmokos.',
+  questions:[
+    {q:'Remiantis kriptovaliutų volatilumo aptarimu, kokia pagrindinė rizika investuojant į kriptovaliutą su 3 metų horizontu prieš svarbų pirkinį?', opts:['Vertė gali smarkiai svyruoti ir tiksliai prireikus pinigų būti gerokai nukritusi','Kriptovaliuta visada auga stabiliai per 3 metus','Rizikos apskritai nėra, jei suma nedidelė','Trumpas horizontas visada tinka kriptovaliutai'], correct:0, ex:'Aukštas volatilumas kelia riziką, kad tiksliai reikiamu momentu vertė bus laikinai nukritusi.'},
+    {q:'Kokia investuotojo portfelio dalis (procentais) būtų skiriama kriptovaliutai, jei investuotų visą planuojamą €2000?', opts:['25%','2%','50%','100%'], correct:0, ex:'€2000 iš €8000 bendro portfelio sudaro 25%.'},
+    {q:'Remiantis diversifikacijos principais (2 modulis), ar 25% portfelio vienoje itin volatilioje kriptovaliutoje būtų laikoma atsargiu paskirstymu?', opts:['Ne, tai gana didelė koncentracija itin rizikingame aktyve, palyginti su likusiu portfeliu','Taip, tai idealiai subalansuota','25% visada laikoma per maža suma bet kokiai rizikai','Diversifikacijos principai netaikomi kriptovaliutoms'], correct:0, ex:'25% portfelio viename itin volatiliame aktyve yra reikšminga koncentracija, verta atsargaus svarstymo.'},
+    {q:'Kokia rekomendacija labiausiai atitiktų viską, ko investuotojas išmoko apie riziką, laiko horizontą ir diversifikaciją?', opts:['Apsvarstyti mažesnę sumą kriptovaliutai, o likusius pinigus, reikalingus artimam tikslui, laikyti stabilesniuose aktyvuose','Investuoti visus €2000 į kriptovaliutą be jokių abejonių','Parduoti visą ETF ir viską perkelti į kriptovaliutą','Laiko horizontas šiuo atveju visiškai nesvarbus'], correct:0, ex:'Trumpam, svarbiam tikslui geriau tinka mažesnė rizika — didelė kriptovaliutos dalis prieštarauja tiek laiko horizonto, tiek diversifikacijos principams.'}
+  ]
+},
+{
+  title:'Atvejo analizė 2: Ar šis projektas patikimas?',
+  scenario:'Naujas kriptoprojektas „QuickCoin“ žada 50x grąžą per metus. Whitepaper trumpas, be techninių detalių, komanda nurodyta tik slapyvardžiais, nėra jokios viešos kodo saugyklos. Kaina per savaitę pakilo 400%, socialiniuose tinkluose apie tai kalba labai daug žmonių.',
+  questions:[
+    {q:'Ar pažadėta „50x grąža per metus“ savaime yra patikimybės ženklas?', opts:['Ne, tokie pažadai patys savaime nėra jokia garantija ir dažnai signalizuoja padidintą riziką','Taip, tokie pažadai visada išsipildo','Taip, kuo didesnis pažadas, tuo saugesnė investicija','Pažado dydis niekaip nesusijęs su rizika'], correct:0, ex:'Nerealistiški pažadai patys savaime yra perspėjimo ženklas, ne patikimybės įrodymas.'},
+    {q:'Ką reiškia, kad komanda nurodyta tik slapyvardžiais, be viešo identifikavimo?', opts:['Sumažėjusią atskaitomybę — sunkiau patraukti komandą atsakomybėn, jei kas nors negerai','Tai visiškai normalu ir niekada nekelia jokios rizikos','Tai visada reiškia, kad projektas apgaulingas','Anonimiškumas visada reiškia geresnę technologiją'], correct:0, ex:'Anonimiška komanda sumažina atskaitomybę, tai savaime yra rizikos veiksnys.'},
+    {q:'Kodėl viešos kodo saugyklos (pvz. GitHub) nebuvimas yra svarbus perspėjimo ženklas?', opts:['Tai reiškia, kad niekas negali patikrinti, ar technologija realiai egzistuoja ir veikia taip, kaip aprašyta','Kodo saugykla niekada nesvarbi vertinant kriptoprojektą','Visi patikimi projektai visada slepia savo kodą','Tai neturi jokio ryšio su projekto patikimumu'], correct:0, ex:'Be viešo kodo neįmanoma nepriklausomai patikrinti, ar technologija realiai veikia.'},
+    {q:'Remiantis viskuo, ko išmokote apie whitepaper vertinimą ir bandos mentalitetą (7 modulis), koks būtų atsargaus investuotojo sprendimas?', opts:['Vengti arba bent jau labai atsargiai vertinti, nepaisant socialinių tinklų entuziazmo ir spartaus kainos kilimo','Iš karto investuoti, nes visi apie tai kalba','Kainos kilimas 400% per savaitę visada patikimas signalas investuoti daugiau','Whitepaper trumpumas visada reiškia paprastą, gerą technologiją'], correct:0, ex:'Keli perspėjimo ženklai kartu (anonimiškumas, jokio viešo kodo, nerealistiški pažadai) kartu su bandos entuziazmu reikalauja itin atsargaus vertinimo.'}
+  ]
+}
+];
+
+const M9_PRACTICE_ITEMS = {
+  label:'Praktika: kriptoprojektų vertinimo scenarijai',
+  items:[
+    {text:'Projektas turi aiškų whitepaper, viešai identifikuojamą komandą su patirtimi, veikiantį produktą ir aktyvų GitHub kodą. Kaip tai vertinamas patikimybės požymių atžvilgiu?', opts:['Tai teigiami patikimumo ženklai, verti tolesnio dėmesio','Tai visada reiškia garantuotą pelną','Tai visiškai nesvarbu vertinant projektą','Tokie požymiai visada reiškia sukčiavimą'], correct:0, ex:'Skaidrumas, veikiantis produktas ir viešas kodas yra teigiami, bet ne vieninteliai patikimumo ženklai.'},
+    {text:'Kriptovaliuta per dieną pakilo 60%, žinomų priežasčių nėra, o socialiniuose tinkluose vyrauja euforija. Ką protingiausia daryti, remiantis FOMO principais (7 modulis)?', opts:['Neskubėti, savarankiškai išsiaiškinti priežastis prieš priimant sprendimą','Iš karto investuoti didelę sumą, kol dar labiau nekilo','Ignoruoti situaciją visiškai be jokio tyrimo','Sekti minią be jokios analizės'], correct:0, ex:'Staigus, nepaaiškinamas kilimas su euforija dažnai signalizuoja FOMO situaciją, reikalaujančią atsargumo.'},
+    {text:'Investuotojas praranda prieigą prie savo skaitmeninės piniginės privačio rakto. Kokia realistiška pasekmė?', opts:['Turtas gali būti negrįžtamai prarastas, be jokio banko ar institucijos, galinčios jį atkurti','Bankas visada gali per kelias dienas atkurti prieigą','Turtas automatiškai grąžinamas po savaitės','Tai neturi jokių pasekmių turto saugumui'], correct:0, ex:'Praradus privatų raktą, kriptovaliuta paprastai prarandama negrįžtamai.'},
+    {text:'Investuotojas nori investuoti į projektą, kuris sprendžia realią problemą ir turi aiškų naudojimo atvejį, o ne vien spekuliacinį potencialą. Kur pirmiausia derėtų ieškoti šios informacijos?', opts:['Projekto whitepaper ir oficialioje svetainėje','Vien tik draugų pokalbiuose','Vien tik atsitiktinuose interneto komentaruose','Informacijos apie tai apskritai nėra įmanoma rasti'], correct:0, ex:'Whitepaper ir oficiali svetainė yra pirminiai šaltiniai suprasti projekto realų tikslą.'}
+  ]
+};
+
 const MODULE_CONTENT = {
   m1: { topics: M1_TOPICS, caseStudies: M1_CASE_STUDIES, practice: {type:'news', data: M1_NEWS_PRACTICE, label:'Praktika: naujienų analizė'} },
   m2: { topics: M2_TOPICS, caseStudies: M2_CASE_STUDIES, practice: {type:'allocation', assets: M2_ALLOC_ASSETS, persona:{name:'Rūta', desc:'55 metų, iki pensijos liko 5 metai. Nori išsaugoti sutaupytus pinigus, bet vis tiek siekia nedidelio augimo, kad neatsiliktų nuo infliacijos.', idealMaxVol:0.045}, label:'Praktika: paskirstykite portfelį Rūtai'} },
@@ -1574,18 +1668,33 @@ const MODULE_CONTENT = {
   m5: { topics: M5_TOPICS, caseStudies: M5_CASE_STUDIES, practice: Object.assign({type:'quizlike'}, M5_PRACTICE_ITEMS) },
   m6: { topics: M6_TOPICS, caseStudies: M6_CASE_STUDIES, practice: Object.assign({type:'quizlike'}, M6_PRACTICE_ITEMS) },
   m7: { topics: M7_TOPICS, caseStudies: M7_CASE_STUDIES, practice: Object.assign({type:'quizlike'}, M7_PRACTICE_ITEMS) },
-  m8: { topics: M8_TOPICS, caseStudies: M8_CASE_STUDIES, practice: {type:'simulator', label:'Baigiamoji 20 dienų prekybos simuliacija'} }
+  m8: { topics: M8_TOPICS, caseStudies: M8_CASE_STUDIES, practice: {type:'simulator', label:'Baigiamoji 20 dienų prekybos simuliacija'} },
+  m9: { topics: M9_TOPICS, caseStudies: M9_CASE_STUDIES, practice: Object.assign({type:'quizlike'}, M9_PRACTICE_ITEMS) }
 };
 
 /* ============ PRE-TEST (žinių palyginimui) ============ */
 
 const PRETEST_QUESTIONS = [
-  {q:'Kas yra akcija?', opts:['Paskolos sutartis su įmone','Nuosavybės dalis įmonėje','Banko indėlio rūšis','Valstybės mokestis'], correct:1},
-  {q:'Kas yra diversifikacija?', opts:['Investavimas tik į vieną akciją','Investicijų paskirstymas tarp kelių skirtingų aktyvų','Visų pinigų laikymas grynaisiais','Akcijų pardavimas per vieną dieną'], correct:1},
-  {q:'Ar didesnė galima investicijų grąža paprastai susijusi su didesne rizika?', opts:['Taip','Ne, jos visiškai nesusijusios','Ne, didesnė rizika visada duoda mažesnę grąžą','Rizika neegzistuoja investuojant'], correct:0},
-  {q:'Ką reiškia „bull market“?', opts:['Ilgą laiką trunkantį kainų kritimą','Ilgą laiką trunkantį kainų kilimą ir optimizmą','Biržos uždarymo dieną','Naują akcijos pavadinimą'], correct:1},
-  {q:'Remiantis akademiniais tyrimais, kokia dalis aktyvių day treiderių ilgainiui praranda pinigus?', opts:['Apie 10%','Apie 30%','Didžioji dauguma (70%+)','Beveik niekas'], correct:2}
+  {diff:'lengvas', q:'Kas yra akcija?', opts:['Paskolos sutartis su įmone','Nuosavybės dalis įmonėje','Banko indėlio rūšis','Valstybės mokestis'], correct:1},
+  {diff:'lengvas', q:'Kas yra diversifikacija?', opts:['Investavimas tik į vieną akciją','Investicijų paskirstymas tarp kelių skirtingų aktyvų','Visų pinigų laikymas grynaisiais','Akcijų pardavimas per vieną dieną'], correct:1},
+  {diff:'lengvas', q:'Kas yra obligacija?', opts:['Nuosavybės dalis įmonėje','Paskola įmonei ar valstybei su fiksuotomis palūkanomis','Akcijų rūšis','Nekilnojamas turtas'], correct:1},
+  {diff:'lengvas', q:'Kas yra ETF?', opts:['Vienos įmonės akcija','Krepšelis kelių aktyvų, kuriuo prekiaujama kaip akcija','Valstybės obligacija','Banko sąskaitos rūšis'], correct:1},
+  {diff:'vidutinis', q:'Ar didesnė galima investicijų grąža paprastai susijusi su didesne rizika?', opts:['Taip','Ne, jos visiškai nesusijusios','Ne, didesnė rizika visada duoda mažesnę grąžą','Rizika neegzistuoja investuojant'], correct:0},
+  {diff:'vidutinis', q:'Ką reiškia „bull market“?', opts:['Ilgą laiką trunkantį kainų kritimą','Ilgą laiką trunkantį kainų kilimą ir optimizmą','Biržos uždarymo dieną','Naują akcijos pavadinimą'], correct:1},
+  {diff:'vidutinis', q:'Kas yra P/E rodiklis?', opts:['Akcijos kainos ir pelno santykis','Įmonės skolos dydis','Dividendų mokėjimo data','Prekybos apimtis'], correct:0},
+  {diff:'vidutinis', q:'Kodėl diversifikacija laikoma svarbia investuojant?', opts:['Ji sumažina riziką prarasti daug dėl vienos investicijos nesėkmės','Ji visada padidina grąžą','Ji panaikina visą riziką be išimčių','Ji reikalinga tik dideliems investuotojams'], correct:0},
+  {diff:'sunkus', q:'Remiantis akademiniais tyrimais, kokia dalis aktyvių day treiderių ilgainiui praranda pinigus?', opts:['Apie 10%','Apie 30%','Didžioji dauguma (70%+)','Beveik niekas'], correct:2},
+  {diff:'sunkus', q:'Kas yra sudėtinės palūkanos?', opts:['Fiksuotas metinis mokestis bankui','Pelnas, gaunamas ne tik nuo pradinės sumos, bet ir nuo anksčiau uždirbto pelno','Vienkartinė premija už investavimą','Mokesčių lengvata investuotojams'], correct:1}
 ];
+function samplePretest(){
+  const easy = PRETEST_QUESTIONS.filter(q=>q.diff==='lengvas');
+  const med = PRETEST_QUESTIONS.filter(q=>q.diff==='vidutinis');
+  const hard = PRETEST_QUESTIONS.filter(q=>q.diff==='sunkus');
+  let selected = [...pickN(easy,2), ...pickN(med,2), ...pickN(hard,1)];
+  const diffRank = {lengvas:0, vidutinis:1, sunkus:2};
+  selected.sort((a,b) => diffRank[a.diff]-diffRank[b.diff]);
+  return selected.map(shuffleOptions);
+}
 
 /* ============ STATE ============ */
 
@@ -1734,13 +1843,14 @@ function renderModeSelect(main){
 }
 
 function renderPreTest(main){
-  let selections = new Array(PRETEST_QUESTIONS.length).fill(null);
+  const questions = samplePretest();
+  let selections = new Array(questions.length).fill(null);
   let submitted = false;
   function draw(){
     let html = `<div class="page-title">Pradinis žinių patikrinimas</div>
       <div class="page-sub">Neprivaloma, bet padės pamatyti, kiek sužinosite per kursą. Galite ir praleisti.</div>
       <div class="content-panel">`;
-    PRETEST_QUESTIONS.forEach((q,qi) => {
+    questions.forEach((q,qi) => {
       html += `<div class="quiz-q"><p class="qtext">${qi+1}. ${q.q}</p>`;
       q.opts.forEach((opt,oi) => {
         let cls = 'qopt';
@@ -1755,8 +1865,8 @@ function renderPreTest(main){
       html += `<button class="submit-btn" id="preSubmitBtn" ${allAnswered?'':'disabled'}>Pateikti</button>
         <button class="continue-btn" id="preSkipBtn" style="background:var(--bg-card);color:var(--ink);border:1px solid var(--border);margin-left:8px;">Praleisti</button>`;
     } else {
-      const correctCount = selections.filter((s,i)=>s===PRETEST_QUESTIONS[i].correct).length;
-      const pct = Math.round((correctCount/PRETEST_QUESTIONS.length)*100);
+      const correctCount = selections.filter((s,i)=>s===questions[i].correct).length;
+      const pct = Math.round((correctCount/questions.length)*100);
       meta.preTestScore = pct;
       saveProgress();
       html += `<div class="quiz-result"><div class="score">${pct}%</div>
@@ -1886,7 +1996,7 @@ function renderTopic(main){
 
   function drawTheory(){
     const totalChars = t.theory.reduce((s,sec) => s + sec.p.length, 0) + (t.visual ? t.visual.intro.length : 0);
-    const requiredSec = Math.min(90, Math.max(20, Math.round(totalChars / 9)));
+    const requiredSec = 3; /* TODO-LAIKINA: sumažinta testavimui, grąžinti į Math.min(90, Math.max(20, Math.round(totalChars / 9))) prieš paleidžiant realiems vartotojams */
     let elapsed = 0;
 
     let html = `<div class="back-link" id="backBtn">← Atgal į modulį</div><div class="content-panel">
