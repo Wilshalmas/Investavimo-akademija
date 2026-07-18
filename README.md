@@ -104,6 +104,7 @@ Tiesiog nieko nekeiskite — palikite `const firebaseConfig = null;` tokį, koks
 
 ## Klaidų sprendimas
 
+- **Po atnaujinimo GitHub nematau pakeitimų, nors failai tikrai pakeisti** → tai žinoma service worker podėlio problema. Nuo šios versijos `sw.js` naudoja „network-first" strategiją, kuri turėtų tai išspręsti automatiškai ateityje. Jei vis tiek matote seną versiją: atidarykite DevTools (F12) → Application → Service Workers → „Unregister", tada Ctrl+Shift+R. Arba tiesiog atidarykite inkognito lange, kad patikrintumėte, ar nauja versija tikrai yra internete.
 - **„Missing or insufficient permissions"** klaidos konsolėje → patikrinkite, ar Firestore Rules (3 žingsnis) tiksliai sutampa su pateiktomis, ir ar Anonymous prisijungimas įjungtas (2 žingsnis).
 - **Programėlė neatsinaujina po pakeitimų GitHub** → naršyklėje spauskite Ctrl+Shift+R (priverstinis atnaujinimas be podėlio), arba atidarykite inkognito lange.
 - **Ikonos nerodo įdiegimo galimybės** → įsitikinkite, kad visi 5 failai (index.html, manifest.json, sw.js, abi ikonos) yra tame pačiame repozitorijos aplanke.

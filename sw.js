@@ -1,4 +1,4 @@
-const CACHE_NAME = 'investavimo-akademija-v1';
+const CACHE_NAME = 'investavimo-akademija-v2';
 const APP_SHELL = [
   './',
   './index.html',
@@ -26,24 +26,22 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
 
-  // Firebase / Google API užklausas leidžiame eiti tiesiai į tinklą —
-  // jų nekešuojame, kad duomenų sinchronizacija visada būtų šviežia.
+  // Firebase / Google API užklausas leidžiame eiti tiesiai į tinklą — nekešuojame.
   if (url.includes('firestore.googleapis.com') || url.includes('googleapis.com') || url.includes('gstatic.com/firebasejs')) {
     return;
   }
 
-  // Programėlės failams (HTML/CSS/JS/ikonos/šriftai) — cache-first,
-  // kad viskas veiktų ir be interneto ryšio.
+  // Programėlės failams — NETWORK-FIRST: visada bandoma gauti naujausią versiją
+  // internetu; podėlis naudojamas tik kaip atsarga, kai nėra interneto ryšio.
+  // Tai užtikrina, kad kiekvienas atnaujinimas GitHub Pages matomas iš karto.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => cached);
-    })
+    fetch(event.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
+
