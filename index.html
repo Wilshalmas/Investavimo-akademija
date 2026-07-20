@@ -14,7 +14,11 @@
 <style>
   :root{
     --bg:#0B0F14; --bg-panel:#121821; --bg-card:#161D28; --ink:#EDEAE0; --muted:#8B93A1;
-    --gain:#3FA796; --loss:#C1553B; --gold:#D9A441; --border:#232B36; --locked:#2b3038;
+    --gain:#3FA796; --loss:#C1553B; --gold:#D9A441; --border:#232B36; --locked:#2b3038; --ink-soft:#D8D5C9;
+  }
+  [data-theme="light"]{
+    --bg:#F7F4ED; --bg-panel:#FFFFFF; --bg-card:#FBF9F4; --ink:#211D17; --muted:#6B6558;
+    --gain:#2B8577; --loss:#A8422A; --gold:#A9781F; --border:#E2DDD0; --locked:#E8E4D8; --ink-soft:#3D3A32;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;overflow:hidden;height:100%;height:100dvh;}
@@ -30,9 +34,22 @@
   .nav-right{display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);}
   .nav-link{cursor:pointer;padding:6px 10px;border-radius:5px;}
   .nav-link:hover{color:var(--ink);background:var(--bg-card);}
-  .font-controls{display:flex;gap:4px;}
-  .font-btn{background:var(--bg-card);border:1px solid var(--border);color:var(--muted);width:26px;height:26px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;}
+  .menu-wrap{position:relative;}
+  .menu-btn{background:var(--bg-card);border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:6px;font-size:16px;cursor:pointer;line-height:1;}
+  .menu-btn:hover{color:var(--gold);border-color:var(--gold);}
+  .dropdown-menu{display:none;position:absolute;top:38px;right:0;background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;padding:12px;min-width:190px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+  .dropdown-menu.open{display:block;}
+  .dropdown-item{cursor:pointer;padding:8px 10px;border-radius:5px;font-size:13px;color:var(--ink);}
+  .dropdown-item:hover{background:var(--bg-card);}
+  .dropdown-divider{height:1px;background:var(--border);margin:9px 0;}
+  .dropdown-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;padding:0 10px 6px;}
+  .dropdown-row{display:flex;gap:6px;padding:0 10px;}
+  .font-btn{background:var(--bg-card);border:1px solid var(--border);color:var(--muted);width:32px;height:28px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;flex:1;}
   .font-btn:hover{color:var(--gold);border-color:var(--gold);}
+  .theme-btn{background:var(--bg-card);border:1px solid var(--border);color:var(--muted);padding:6px 8px;border-radius:5px;font-size:11.5px;cursor:pointer;flex:1;}
+  .theme-btn:hover{color:var(--gold);border-color:var(--gold);}
+  .theme-btn.active{border-color:var(--gold);color:var(--gold);}
+  .dropdown-version{font-size:9.5px;color:var(--muted);text-align:center;padding-top:2px;font-family:'JetBrains Mono',monospace;opacity:0.6;}
   .stipendija-chip{background:var(--bg-card);border:1px solid var(--gold);color:var(--gold);padding:5px 12px;border-radius:20px;font-weight:700;}
   .sync-status{cursor:default;font-size:14px;}
 
@@ -72,7 +89,7 @@
   .content-panel{background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;padding:24px 26px;margin-top:14px;}
   .theory-section{margin-bottom:18px;}
   .theory-section h3{font-size:15.5px;color:var(--gold);margin-bottom:8px;}
-  .theory-section p{font-size:14px;line-height:1.7;color:#D8D5C9;}
+  .theory-section p{font-size:14px;line-height:1.7;color:var(--ink-soft);}
   .optional-box{margin-top:16px;border:1px dashed var(--border);border-radius:6px;padding:12px 14px;}
   .optional-box summary{cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--gold);}
   .optional-box p{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6;}
@@ -99,7 +116,7 @@
   .quiz-q p.qtext{font-size:14px;font-weight:600;margin-bottom:9px;}
   .qopt{display:block;width:100%;text-align:left;background:var(--bg-card);border:1px solid var(--border);color:var(--ink);padding:9px 13px;border-radius:5px;font-size:13px;margin-bottom:7px;cursor:pointer;}
   .qopt:hover{border-color:var(--gold);}
-  .qopt.selected{border-color:var(--gold);background:#1b2029;}
+  .qopt.selected{border-color:var(--gold);background:var(--bg-card);}
   .qopt.correct{border-color:var(--gain);background:rgba(63,167,150,0.12);}
   .qopt.incorrect{border-color:var(--loss);background:rgba(193,85,59,0.12);}
   .qopt:disabled{cursor:default;}
@@ -124,9 +141,9 @@
   .choice-btn.right{border-color:var(--gain);background:rgba(63,167,150,0.15);}
   .choice-btn.wrong{border-color:var(--loss);background:rgba(193,85,59,0.15);}
   .choice-btn:disabled{cursor:default;}
-  .feedback-box{margin-top:16px;padding:14px 16px;border-radius:6px;border-left:3px solid var(--gold);background:var(--bg-card);font-size:13.5px;line-height:1.6;color:#D8D5C9;}
+  .feedback-box{margin-top:16px;padding:14px 16px;border-radius:6px;border-left:3px solid var(--gold);background:var(--bg-card);font-size:13.5px;line-height:1.6;color:var(--ink-soft);}
 
-  .ticker-wrap{overflow:hidden;background:#080B10;border:1px solid var(--gold);border-radius:6px;white-space:nowrap;height:30px;display:flex;align-items:center;margin-bottom:14px;}
+  .ticker-wrap{overflow:hidden;background:var(--bg-panel);border:1px solid var(--gold);border-radius:6px;white-space:nowrap;height:30px;display:flex;align-items:center;margin-bottom:14px;}
   .ticker{display:inline-block;padding-left:100%;animation:scroll-left 26s linear infinite;font-family:'JetBrains Mono',monospace;font-size:11.5px;}
   .ticker span{margin-right:28px;}
   @keyframes scroll-left{0%{transform:translateX(0);}100%{transform:translateX(-100%);}}
@@ -168,14 +185,31 @@
   <header class="top">
     <h1 id="homeLink">INVESTAVIMO <span>AKADEMIJA</span></h1>
     <div class="nav-right">
-      <span class="font-controls">
-        <button class="font-btn" id="fontDownBtn" title="Sumažinti šriftą">A-</button>
-        <button class="font-btn" id="fontUpBtn" title="Padidinti šriftą">A+</button>
-      </span>
       <span class="sync-status" id="syncStatus" title="Sinchronizavimo būsena">⏳</span>
       <span class="stipendija-chip" id="stipChip">€0 stipendija</span>
-      <span class="nav-link" id="navReview">🔄 Kartoti</span>
       <span class="nav-link" id="navTranscript">Pažymių knygelė</span>
+      <div class="menu-wrap">
+        <button class="menu-btn" id="menuToggleBtn" title="Daugiau">⋯</button>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <div class="dropdown-item" id="navReview">🔄 Kartoti žinias</div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-label">Šrifto dydis</div>
+          <div class="dropdown-row">
+            <button class="font-btn" id="fontDownBtn">A-</button>
+            <button class="font-btn" id="fontUpBtn">A+</button>
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-label">Tema</div>
+          <div class="dropdown-row">
+            <button class="theme-btn" id="themeDarkBtn">🌙 Tamsi</button>
+            <button class="theme-btn" id="themeLightBtn">☀️ Šviesi</button>
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" id="navResetProgress" style="color:var(--loss);">🗑️ Išvalyti progresą</div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-version" id="versionMarker"></div>
+        </div>
+      </div>
     </div>
   </header>
   <div id="main"></div>
@@ -242,6 +276,8 @@ async function initFirebase(){
 </script>
 
 <script>
+const APP_VERSION = 'v1.6 · 2026-07-19';
+
 const PLANNED_MODULES = [
   {id:'m1', built:true, title:'Investavimo pagrindai', subtitle:'Akcijos, obligacijos, birža ir rinkos kalba', icon:'🏛️', badgeName:'Pagrindų Meistras'},
   {id:'m10', built:true, title:'Praktinė investavimo pradžia', subtitle:'Pavedimų tipai, brokerio pasirinkimas, mokesčiai, pirmas sandoris', icon:'🎯', badgeName:'Praktikas'},
@@ -2056,7 +2092,13 @@ function applySavedProgress(saved){
   BUILT_CHAIN.forEach(id => {
     if(saved[id]){
       Object.keys(progress[id].topics).forEach(k => { if(saved[id].topics && saved[id].topics[k]) progress[id].topics[k] = saved[id].topics[k]; });
-      if(saved[id].caseStudies) progress[id].caseStudies = saved[id].caseStudies;
+      if(saved[id].caseStudies){
+        // Merge by index instead of overwriting wholesale — protects against
+        // case studies added to a module after this progress was saved.
+        progress[id].caseStudies.forEach((defaultEntry, idx) => {
+          if(saved[id].caseStudies[idx]) progress[id].caseStudies[idx] = saved[id].caseStudies[idx];
+        });
+      }
       if(saved[id].practice) progress[id].practice = saved[id].practice;
     }
   });
@@ -2115,7 +2157,59 @@ function renderHeader(){
 
 document.getElementById('homeLink').addEventListener('click', () => { view = {name:'syllabus'}; render(); });
 document.getElementById('navTranscript').addEventListener('click', () => { view = {name:'transcript'}; render(); });
-document.getElementById('navReview').addEventListener('click', () => { view = {name:'review'}; render(); });
+document.getElementById('navReview').addEventListener('click', () => { closeDropdown(); view = {name:'review'}; render(); });
+
+/* ============ DROPDOWN MENU ============ */
+function closeDropdown(){ document.getElementById('dropdownMenu').classList.remove('open'); }
+document.getElementById('menuToggleBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('dropdownMenu').classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('dropdownMenu');
+  if(menu.classList.contains('open') && !menu.contains(e.target) && e.target.id !== 'menuToggleBtn'){
+    closeDropdown();
+  }
+});
+document.getElementById('versionMarker').textContent = APP_VERSION;
+
+/* ============ RESET PROGRESS ============ */
+async function resetAllProgress(){
+  const confirmed = window.confirm('Ar tikrai norite išvalyti visą savo progresą? Šis veiksmas negrįžtamas — bus prarasti visi balai, pažymėjimai ir stipendija.');
+  if(!confirmed) return;
+  try{ localStorage.removeItem('academy_progress_v2'); }catch(e){}
+  if(fbEnabled && fbDb && fbUser){
+    try{ await fbDb.collection('academy_progress').doc(fbUser.uid).delete(); }catch(e){ console.error('Firebase reset failed:', e); }
+  }
+  progress = {};
+  BUILT_CHAIN.forEach(id => {
+    progress[id] = { topics:{}, caseStudies: MODULE_CONTENT[id].caseStudies.map(()=>({done:false,score:0})), practice:{done:false} };
+    MODULE_CONTENT[id].topics.forEach(t => progress[id].topics[t.id] = {theoryRead:false, bestScore:null, attempts:0});
+  });
+  meta = { mode:null, preTestScore:null, preTestSkipped:false };
+  view = {name:'syllabus', moduleId:null, topicId:null};
+  closeDropdown();
+  render();
+}
+document.getElementById('navResetProgress').addEventListener('click', resetAllProgress);
+
+/* ============ THEME ============ */
+let currentTheme = 'dark';
+try{
+  const savedTheme = localStorage.getItem('academy_theme');
+  if(savedTheme === 'light' || savedTheme === 'dark') currentTheme = savedTheme;
+}catch(e){}
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  try{ localStorage.setItem('academy_theme', currentTheme); }catch(e){}
+  document.getElementById('themeDarkBtn').classList.toggle('active', currentTheme==='dark');
+  document.getElementById('themeLightBtn').classList.toggle('active', currentTheme==='light');
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if(metaTheme) metaTheme.setAttribute('content', currentTheme==='light' ? '#F7F4ED' : '#0B0F14');
+}
+document.getElementById('themeDarkBtn').addEventListener('click', () => { currentTheme='dark'; applyTheme(); });
+document.getElementById('themeLightBtn').addEventListener('click', () => { currentTheme='light'; applyTheme(); });
+applyTheme();
 
 /* ============ FONT SIZE CONTROL ============ */
 const FONT_LEVELS = [0.9, 1, 1.15, 1.3];
@@ -2134,6 +2228,28 @@ document.getElementById('fontDownBtn').addEventListener('click', () => { fontLev
 applyFontLevel();
 
 function render(){
+  try{
+    renderInner();
+  }catch(err){
+    console.error('Render error:', err);
+    clearInterval(timerInterval);
+    const main = document.getElementById('main');
+    if(main){
+      main.innerHTML = `<div class="content-panel" style="text-align:center;padding:40px 20px;">
+        <div style="font-size:32px;margin-bottom:10px;">⚠️</div>
+        <h3 style="font-family:'Fraunces',serif;margin-bottom:10px;">Kažkas nutiko</h3>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:18px;max-width:420px;margin-left:auto;margin-right:auto;">
+          Įvyko nenumatyta klaida rodant šį puslapį. Galite pabandyti grįžti į silabusą, arba, jei problema kartojasi, išvalyti progresą nustatymuose (⋯ meniu).
+        </p>
+        <button class="continue-btn" id="errBackBtn">← Grįžti į silabusą</button>
+        <p style="color:var(--muted);font-size:10.5px;margin-top:16px;font-family:'JetBrains Mono',monospace;">${(err && err.message) ? err.message : ''}</p>
+      </div>`;
+      const btn = document.getElementById('errBackBtn');
+      if(btn) btn.addEventListener('click', () => { view = {name:'syllabus'}; render(); });
+    }
+  }
+}
+function renderInner(){
   clearInterval(timerInterval);
   const main = document.getElementById('main');
   if(!meta.mode){ renderModeSelect(main); return; }
@@ -2524,7 +2640,7 @@ function renderCaseStudy(main){
 
   function draw(){
     let html = `<div class="back-link" id="backBtn">← Atgal į modulį</div><div class="page-title">📌 ${cs.title}</div>
-      <div class="content-panel"><p style="font-size:14px;line-height:1.7;color:#D8D5C9;margin-bottom:18px;">${cs.scenario}</p>`;
+      <div class="content-panel"><p style="font-size:14px;line-height:1.7;color:var(--ink-soft);margin-bottom:18px;">${cs.scenario}</p>`;
     cs.questions.forEach((q, qi) => {
       html += `<div class="quiz-q"><p class="qtext">${qi+1}. ${q.q}</p>`;
       q.opts.forEach((opt, oi) => {
